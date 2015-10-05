@@ -1,0 +1,67 @@
+FC = gfortran
+USERDIR   = ./example
+MODELFILE = $(USERDIR)/kaleu_modelfile
+USERFILE  = $(USERDIR)/kaleu_userfileNLO
+RNGFILE   = $(USERDIR)/kaleu_random
+LIBRARY   = libkaleu_exampleNLO.a
+
+FFLAGS = -O 
+
+SRCDIR = ./src
+# VRSDIR=v1 means that also "higher-order" phase space below LO cuts
+# is populated, following integrable (1/sqrt-like) distributions.
+VRSDIR = ./src/v1
+BUILD  = ./build
+SPLVAR = both
+
+%.o : %.f90
+	$(FC) $(FFLAGS) -I$(USERDIR) -c  $*.f90 -o $*.o 
+
+.f.o: 
+	$(FC) $(FFLAGS) -I$(USERDIR) -c $*.f -o $*.o 
+
+OBJECTS = \
+          $(RNGFILE).o  \
+          $(BUILD)/avh_bint.o  \
+          $(BUILD)/avh_print.o  \
+          $(BUILD)/kaleu_grid.o  \
+          $(BUILD)/kaleu_splvar.o  \
+          $(BUILD)/kaleu_model.o  \
+          $(BUILD)/kaleu_tree.o  \
+          $(BUILD)/kaleu_strf.o  \
+          $(BUILD)/kaleu_kinem.o  \
+          $(BUILD)/kaleu_mulcha.o  \
+          $(BUILD)/kaleu_ranvar.o  \
+          $(BUILD)/kaleu_vertex.o  \
+          $(BUILD)/kaleu.o  \
+          $(BUILD)/kaleu_dipol.o  \
+          $(MODELFILE).o  \
+          $(USERFILE).o
+
+MODFILES = \
+          ./avh_bint.mod  \
+          ./avh_print.mod  \
+          ./avh_kaleu_grid.mod  \
+          ./avh_kaleu_splvar.mod  \
+          ./avh_kaleu_model.mod  \
+          ./avh_kaleu_tree.mod  \
+          ./avh_kaleu_strf.mod  \
+          ./avh_kaleu_kinem.mod  \
+          ./avh_kaleu_mulcha.mod  \
+          ./avh_kaleu_ranvar.mod  \
+          ./avh_kaleu_vertex.mod  \
+          ./avh_kaleu_dipol.mod  \
+          ./avh_kaleu.mod
+
+all:		copy $(LIBRARY) clean
+
+copy: 
+	cp $(SRCDIR)/*.f90             $(BUILD)
+	cp $(VRSDIR)/*                 $(BUILD)
+	cp $(SRCDIR)/dipol_$(SPLVAR)/* $(BUILD)
+
+$(LIBRARY):	$(OBJECTS)
+		ar cru $(LIBRARY) $(OBJECTS)
+		ranlib $(LIBRARY)
+
+clean:;	rm -f $(OBJECTS) $(MODFILES) *.mod

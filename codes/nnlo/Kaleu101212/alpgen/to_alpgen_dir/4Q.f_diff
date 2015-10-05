@@ -1,0 +1,50 @@
+***************
+*** 686,687 ****
+--- 686,688 ----
+        real *8 pcm(0:3,maxpar)
++       logical alpgen_kaleu_yes !KALEU
+  *
+***************
+*** 709,710 ****
+--- 710,719 ----
+           cutkin(10)=0.d0
++          if (alpgen_kaleu_yes()) then                          !KALEU
++            call QQQQ_kaleu_init( ihvy,ihvy2 ,njets ,roots      !KALEU
++      &                          ,apar                          !KALEU
++      &                          ,ptjmin ,ptQmin ,ptQ2min       !KALEU
++      &                          ,etajmax,etaQmax,etaQ2max      !KALEU
++      &                          ,drjmin ,drQmin ,drQ2min       !KALEU
++      &                          ,nopt,niter )                  !KALEU
++          endif        
+           ninit=1
+***************
+*** 715,717 ****
+--- 724,731 ----
+        pswgt=0.d0
++       if (alpgen_kaleu_yes()) then                !KALEU
++       call return_jproc( i )                      !KALEU
++       call QQQQ_kaleu_gnrt( i ,x1,x2 ,pcm ,lnot ) !KALEU
++       else                                        !KALEU
+        call momgen(njets,mQ2,mQ,mQ,roots,x1,x2,pcm,wgt,lnot)
++       endif                                            !KALEU
+        djg= 1.d0 ! dummy variable
+***************
+*** 724,726 ****
+--- 738,744 ----
+  *
++       if (alpgen_kaleu_yes()) then                        !KALEU
++       factor= 1d0/(2.d0*pi)**(3*(njets+4)-4)/2.d0/s       !KALEU
++       else                                                !KALEU
+        factor= 1d0/(2.d0*pi)**(3*(njets+4)-4)/2.d0/s/x1/x2
++       endif                                               !KALEU
+  *
+***************
+*** 828,830 ****
+--- 846,852 ----
+  *
++       if (alpgen_kaleu_yes()) then !KALEU
++       pswgt = factor               !KALEU
++       else                         !KALEU
+        pswgt = factor*wgt
++       endif                        !KALEU
+  *

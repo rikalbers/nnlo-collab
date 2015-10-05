@@ -1,0 +1,17 @@
+  labels( gluon)='g '; masses( gluon)=0d0        ; widths( gluon)=0d0      
+  labels(photon)='A '; masses(photon)=0d0        ; widths(photon)=0d0      
+  labels(wboson)='W '; masses(wboson)=80.419d0   ; widths(wboson)=2.12d0   
+  labels(zboson)='Z '; masses(zboson)=91.1882d0  ; widths(zboson)=2.4952d0 
+  labels( higgs)='H '; masses( higgs)=130d0      ; widths( higgs)=0.00429d0
+  labels(uquark)='u '; masses(uquark)=5d-3       ; widths(uquark)=0d0      
+  labels(dquark)='d '; masses(dquark)=10d-3      ; widths(dquark)=0d0      
+  labels(cquark)='c '; masses(cquark)=1.3d0      ; widths(cquark)=0d0      
+  labels(squark)='s '; masses(squark)=0.2d0      ; widths(squark)=0d0      
+  labels(tquark)='t '; masses(tquark)=174.3d0    ; widths(tquark)=1.6d0    
+  labels(bquark)='b'; masses(bquark)=4.8d0      ; widths(bquark)=0d0      
+  labels(eleneu)='ne'; masses(eleneu)=0d0        ; widths(eleneu)=0d0      
+  labels(electr)='el'; masses(electr)=0d0        ; widths(electr)=0d0      
+  labels(muneu )='nm'; masses(muneu )=0d0        ; widths(muneu )=0d0      
+  labels(muon  )='mu'; masses(muon  )=0.1056583d0; widths(muon  )=0d0      
+  labels(tauneu)='nt'; masses(tauneu)=0d0        ; widths(tauneu)=0d0      
+  labels(tauon )='ta'; masses(tauon )=1.777d0    ; widths(tauon )=0d0      

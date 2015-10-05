@@ -1,0 +1,171 @@
+module avh_kaleu_strf
+!  use avh_parni
+  use avh_kaleu_grid
+!
+  private ! Everything is private, except the following list
+  public :: strf_type,strf_init,strf_updt_xmin,strf_set_xmin &
+           ,strf_gnrt,strf_wght,strf_collect,strf_close,strf_plot
+!
+!! The array dimension of random numbers from parni
+!  integer ,parameter ,private :: size_dim = avh_parni_dim
+! Unit to which messages are send
+  integer ,parameter ,private :: nunit = 6
+! Batch size and maximum number of channels for grids
+  integer ,parameter ,private :: nbatch=1000 ,nchmax=200
+! Fraction of channels fused in grid during optimization
+  real(kind(1d0)) ,parameter ,private :: fusefrac=2d0/(2*nchmax-1)
+! Hard cut-off on the minimum value for xmin=sqrt(tau0)=ehat_min/ecm
+  real(kind(1d0)) ,parameter ,private :: cutoff=1d-8
+!
+  type :: strf_type
+    private
+    real(kind(1d0)) :: xmin,lntau0,xs
+!    type(avh_parni_type) :: or2,oxs             ! Instances of parni
+    type(grid_type) :: or2,oxs             ! Instances of 1d grids
+  end type
+!
+!
+contains
+!
+!
+  subroutine strf_init( obj ,xmin )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+  real(kind(1d0)) ,intent(in)    :: xmin
+!
+  if (xmin.lt.0d0.or.xmin.ge.1d0) then
+    write(*,*) 'ERROR in kaleu_strf: xmin =',xmin ,&
+               ', but should be between 0 and 1'
+    stop
+  elseif (xmin.lt.cutoff) then
+    if (nunit.gt.0) write(nunit,*) &
+      'WARNING from kaleu_strf: ' ,&
+      'overruling xmin =',xmin,' to minimum =',cutoff
+    obj%xmin = cutoff
+  else
+    if (nunit.gt.0) write(nunit,*) &
+      'MESSAGE from kaleu_strf: xmin set to',xmin
+    obj%xmin = xmin
+  endif
+!
+  obj%lntau0 = dlog( obj%xmin**2 )
+!
+!  if (nunit.gt.0) then
+  if (.false.) then
+    write(nunit,*) 'MESSAGE from kaleu_strf: ' ,&
+       'dont forget to put the flux factor 1/(2*ecm^2) yourself'
+    write(nunit,*) 'MESSAGE from kaleu_strf: ' ,&
+       'and dont put  1/(2*ehat^2)   but   1/(2*emc^2)'
+  endif
+!
+!  call avh_parni_init( obj%or2 ,11 ,1 ,nbatch,nchmax )
+!  call avh_parni_init( obj%oxs ,11 ,1 ,nbatch,nchmax )
+  call grid_init( obj%or2 ,nbatch,nchmax,fusefrac ,'STRFrvar' )
+  call grid_init( obj%oxs ,nbatch,nchmax,fusefrac ,'STRFxvar' )
+  end subroutine
+!
+!
+  subroutine strf_updt_xmin( obj ,xmin )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+  real(kind(1d0)) ,intent(in)    :: xmin
+  if (xmin.gt.obj%xmin) call strf_set_xmin( obj ,xmin )
+  end subroutine
+!
+!
+  subroutine strf_set_xmin( obj ,xmin )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+  real(kind(1d0)) ,intent(in)    :: xmin
+  obj%xmin   = xmin
+  obj%lntau0 = dlog( obj%xmin**2 )
+  if (nunit.gt.0) write(nunit,*) &
+    'MESSAGE from kaleu_strf: xmin set to',obj%xmin
+  end subroutine
+!
+!
+  subroutine strf_gnrt( obj ,x1,x2 )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+  real(kind(1d0)) ,intent(out)   :: x1,x2
+  real(kind(1d0)) :: r2,xs
+!  real(kind(1d0)) :: xparni(size_dim)
+!  call avh_parni_generate( obj%or2 ,xparni )
+!  r2 = xparni(1)
+!  call avh_parni_generate( obj%oxs ,xparni )
+!  xs = xparni(1)
+  call grid_gnrt( obj%or2 ,r2 )
+  call grid_gnrt( obj%oxs ,xs )
+  x1 = dexp(obj%lntau0*( xs*(1d0-r2) ))
+  x2 = dexp(obj%lntau0*( xs*(    r2) ))
+  obj%xs = xs
+  end subroutine
+!
+!
+  subroutine strf_wght( obj ,weight )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+  real(kind(1d0)) ,intent(out)   :: weight
+  real(kind(1d0)) :: ww
+!  real(kind(1d0)) :: xparni(size_dim)
+!
+!  call avh_parni_weight( obj%or2 ,weight ,xparni )
+!  call avh_parni_weight( obj%oxs ,ww     ,xparni )
+  call grid_wght( obj%or2 ,weight ,-1d0 )
+  call grid_wght( obj%oxs ,ww     ,-1d0 )
+  weight = weight*ww
+  weight = weight * obj%xs*obj%lntau0**2 ! Jacobian
+!  weight = weight * dexp( obj%lntau0 * obj%xs ) ! x1*x2
+  end subroutine
+!
+!
+  subroutine strf_collect( obj ,weight )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+  real(kind(1d0)) ,intent(in)    :: weight
+!
+!  call avh_parni_adaptone( obj%or2 ,weight )
+!  call avh_parni_adaptone( obj%oxs ,weight )
+  call grid_collect( obj%or2 ,weight ,-1d0 )
+  call grid_collect( obj%oxs ,weight ,-1d0 )
+  end subroutine
+!
+!
+  subroutine strf_close( obj )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+!  call avh_parni_delete( obj%or2 )
+!  call avh_parni_delete( obj%oxs )
+  call grid_close( obj%or2 )
+  call grid_close( obj%oxs )
+  end subroutine
+!
+!
+  subroutine strf_plot( obj ,iunit )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(in) :: obj
+  integer         ,intent(in) :: iunit
+!  call avh_parni_plot( obj%or2 ,iunit ,1 )
+!  call avh_parni_plot( obj%oxs ,iunit ,2 )
+  call grid_plot( obj%or2 ,iunit )
+  call grid_plot( obj%oxs ,iunit )
+  end subroutine
+!
+!
+end module

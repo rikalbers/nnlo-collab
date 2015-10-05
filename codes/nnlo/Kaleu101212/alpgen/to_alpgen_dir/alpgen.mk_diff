@@ -1,0 +1,15 @@
+***************
+*** 1 ****
+--- 1,3 ----
++ kaleudir = ../../generalpurp/avh_kaleu
++ kaleulib = kaleu_$(prc)
+  # DO NOT EDIT FROM HERE ON:
+***************
+*** 57,59 ****
+  	$(alp)/alpgen.o $(alp)/alputi.o $(alp)/alppdf.o \
+! 	$(alp)/Aint90.o $(prclib)/XXX.o
+  # fortran90 version, Vast/Veridian compyler
+--- 59,61 ----
+  	$(alp)/alpgen.o $(alp)/alputi.o $(alp)/alppdf.o \
+! 	$(alp)/Aint90.o $(prclib)/XXX.o -L$(kaleudir) -l$(kaleulib)
+  # fortran90 version, Vast/Veridian compyler

@@ -1,0 +1,15 @@
+hi_file err_file			! histogram file, error file 
+0 1  			          	! repeat, ranhel
+5 					! the number of particles 
+3 -3 -4 4 35                             ! flavors of the particles
+0 1 0 0      	    			! iflag, iunitary, ihiggs, iwidth
+1 20000 10 1000 1000 ! ikaleu nbatch nstep nbatch_grid nbatch_cut
+F T 1 					! onlyqcd, withqcd, irun	  
+F 1000 50000                            ! unwgt, preunw, unwevt
+1                                       ! gener
+16000000                                 ! nmc
+55000 55000 1.2 4 1000000 1             ! optim
+7000                                    ! sqrt(s)
+1                                       
+0 0
+2212 2212 7000.0000 7000.0000 3 1

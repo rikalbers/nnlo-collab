@@ -1,0 +1,109 @@
+  subroutine cuts_init( cuts ,process,nfinst ,masses ,smin )
+  implicit none
+  type(cuts_type) ,intent(inout) :: cuts
+  integer         ,intent(in)  :: process(-2:17),nfinst
+  real(kind(1d0)) ,intent(in)  :: masses(nfirst:nlast)
+  real(kind(1d0)) ,intent(out) :: smin(-2:17,-2:17)
+  real(kind(1d0)) :: el,eq,eg,cl,cq,cll,clq,cqq,cgx,cg,gqq &
+                    ,e1,e2,p1,p2,rm1,rm2,xx
+  integer :: i,j,i1,j1,j2,prcss(-2:17)
+!
+  call cuts_alloc( cuts ,nfinst )
+!
+! cuts do not distinguish between anti-particles and particles
+  prcss(-2:nfinst) = abs(process(-2:nfinst))
+!
+! -- 6f cuts ------------------------------------------------
+  el=10.0d0 ! minimum lepton energy
+  eq=10.0d0 ! minimum quark  energy
+  eg=10.0d0 ! minimum photon energy
+  cl=cos(5.0d0/360d0*twopi) ! maximum cos lepton with beam
+  cq=cos(5.0d0/360d0*twopi) ! maximum cos quark with beam
+  cg=cos(5.0d0/360d0*twopi) ! maximum cos photon with beam
+  cll=cos(5.0d0/360d0*twopi) ! maximum cos lepton with lepton
+  clq=cos(5.0d0/360d0*twopi) ! maximum cos lepton with quark
+  cqq=cos(5.0d0/360d0*twopi) ! maximum cos quark with quark
+  cgx=cos(5.0d0/360d0*twopi) ! maximum cos photon with fermions
+  gqq=10.0d0 ! minimum mass quark with quark
+! -----------------------------------------------------------
+  do i=1,nfinst
+    i1=prcss(i)
+    cuts%ec(i)=masses(i1)
+    if (is_photon(i1)) then; cuts%ec(i)=eg;                 cuts%c1(i)=cg; cuts%c2(i)=cg; endif
+    if (is_neutri(i1)) then;                                                              endif
+    if (is_chlept(i1)) then; cuts%ec(i)=max(el,cuts%ec(i)); cuts%c1(i)=cl; cuts%c2(i)=cl; endif
+    if (is_qcd(i1))    then; cuts%ec(i)=max(eq,cuts%ec(i)); cuts%c1(i)=cq; cuts%c2(i)=cq; endif
+  enddo
+! 
+  do i=  1,nfinst-1
+  i1=prcss(i)
+  do j=i+1,nfinst
+  j1=prcss(j)
+    if     (is_neutri(i1) .or.is_neutri(j1)) then
+    elseif (is_qcd(i1)   .and.is_chlept(j1)) then; cuts%cc(i,j)=clq
+    elseif (is_chlept(i1).and.is_chlept(j1)) then; cuts%cc(i,j)=cll
+    elseif (is_chlept(i1).and.is_qcd(j1) )   then; cuts%cc(i,j)=clq
+    elseif (is_photon(i1))                   then; cuts%cc(i,j)=cgx
+    elseif (is_photon(j1))                   then; cuts%cc(i,j)=cgx
+    elseif (is_qcd(i1)   .and.is_qcd(j1))    then; cuts%cc(i,j)=cqq; cuts%gmas(i,j)=gqq
+    endif
+  enddo
+  enddo
+!
+  do i=2,nfinst
+  do j=1,i-1
+    cuts%gmas(i,j)=cuts%gmas(j,i)
+    cuts%cc(  i,j)=cuts%cc(  j,i)
+  enddo
+  enddo
+!
+! Determine cuts on 2-particle invariants
+  call putsmin( cuts ,process,nfinst ,masses ,smin )
+!
+  end subroutine
+!
+!
+  function cuts_pass( cuts ,pkaleu ) result(value)
+  implicit none
+  type(cuts_type) ,intent(in) :: cuts
+  real(kind(1d0)) ,intent(in) :: pkaleu(0:3,-2:17)
+  logical :: value
+  real(kind(1d0)) :: c,s
+  integer         :: l,l1,l2
+!  
+  value = .false.
+!  
+  value = .true.
+  return
+!  
+  do l=1,cuts%nfinst 
+    if (pkaleu(0,l).lt.cuts%ec(l)) return
+    c = pkaleu(3,l)/pkaleu(0,l)
+    if ( c.gt.cuts%c1(l)) return
+    if (-c.gt.cuts%c2(l)) return
+  enddo
+!  
+  do l1=1,cuts%nfinst
+  do l2=1,cuts%nfinst
+    if (l1.eq.l2) cycle
+    if (cosij(pkaleu(1:3,l1),pkaleu(1:3,l2)).gt.cuts%cc(l1,l2)) return
+    s = ( pkaleu(0,l1)+pkaleu(0,l2) )**2 &
+      - ( pkaleu(1,l1)+pkaleu(1,l2) )**2 &
+      - ( pkaleu(2,l1)+pkaleu(2,l2) )**2 &
+      - ( pkaleu(3,l1)+pkaleu(3,l2) )**2 
+    if (s.lt.cuts%gmas(l1,l2)**2) return
+  enddo
+  enddo
+!  
+  value = .true.
+  end function
+!
+!
+  function cosij(a,b) result(value)
+  implicit none
+  real(kind(1d0)) ,intent(in) :: a(3),b(3)
+  real(kind(1d0)) :: value
+  value = a(1)*b(1)+a(2)*b(2)+a(3)*b(3)
+  value = value/dsqrt(a(1)**2+a(2)**2+a(3)**2)
+  value = value/dsqrt(b(1)**2+b(2)**2+b(3)**2)
+  end function

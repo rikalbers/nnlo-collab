@@ -1,0 +1,20 @@
+!
+!   eleneu=1   electr=2   uquark=3   dquark=4
+!    muneu=5     muon=6   cquark=7   squark=8
+!   tauneu=9    tauon=10  tquark=11  bquark=12
+!   wboson=13  photon=14  zboson=15   higgs=16
+!    gluon=17
+!
+!   anti-particles get a minus-sign
+!
+start
+5                     ! nfinst
+ 17 17 11 -11 12 -12 17 ! 4 -4 3 -3 17 17 17 !    ! process, first two are initial state
+F T T                 ! onlyqcd withqcd withhiggs
+2000d0                ! ecm in GeV
+10000000              ! number of events
+1                     ! generator: 0=Rambo, 1=Kaleu
+10000                 ! nbatch for optimization Kaleu
+10                    ! nstep  for optimization Kaleu
+1d-3                  ! thrs   for optimization Kaleu
+1d-2 1d-2 1d-2 1d-2   ! The cut-offs aff,afi,aif,aii

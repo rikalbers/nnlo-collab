@@ -1,0 +1,17 @@
+
+
+If you need more help than you can find in this file, ask the author
+Andreas van Hameren <hameren@ifj.edu.pl>
+
+If you want to use Kaleu in combination with one the programs
+privileged to have a directory inside this directory, choose
+your favorite fortran compiler in its makefile, and execute
+   make -f makefile_<program>
+Then read the README in the directory.
+
+else...
+
+Have a look at the directory "example" and the README file there
+in particular.
+
+

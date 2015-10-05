@@ -1,0 +1,8 @@
+
+
+In order to use Helac with Kaleu, you need to copy the files from the
+directory to_helac_dir to the Helac directory, and make with the
+makefiles you find there. Don't forget to put the correct value for
+KALEUHOME in those. Also realize that the input has one extra line.
+
+ 

@@ -1,0 +1,20 @@
+
+
+In order to combine Kaleu with Alpgen, you need to edit some source
+files of Alpgen. In the directory to_alpgen_dir you will find the
+result of
+
+diff -C 1 original new
+
+for the files that have to be changed. You will notice that you only
+have to add lines, all marked with !KALEU (except for the makefile,
+in which you have to edit one line). Realize that the input then
+needs one extra integer on the line labeled by
+
+! N(events)/iteration and N(iter's) for initial grid optimiz
+
+which you have to put to 1 if you want to use Kaleu.
+So far, only the 2Q and 4Q processes have been included, and only
+to the level of cross section calculation.
+
+

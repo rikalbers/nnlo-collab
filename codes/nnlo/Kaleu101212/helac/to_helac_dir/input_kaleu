@@ -1,0 +1,15 @@
+hi_file err_file
+0 1
+8
+2 -2 2 -2 3 -3 2 -2
+0 1 1 0   ! iflag,iunitary,ihiggs,iwidth
+1 50000 10 1 ! ikaleu nbatch nstep iseed <=== extra line!
+F T 0
+F 5000 50000
+0
+10000000
+100000 100000 1.0 8 1000000 1
+500d0
+0
+0 0
+2212 2212 7000.0000 7000.0000 3 1

@@ -1,0 +1,300 @@
+module avh_kaleu_splvar
+!
+  integer ,private ,parameter :: nbatch = 1000
+  real(kind(1d0)) ,private ,parameter :: emin = 0.01d0
+  real(kind(1d0)) ,private ,parameter :: cutoff = 1d-6
+  integer ,private ,parameter :: nlbl = 8
+!
+  type :: splvar_type ! m=minus,l=left,r=right,p=plus
+    private
+    real(kind(1d0)) :: x=-1d0,a=0.5d0
+    real(kind(1d0)) :: el=0d0                    ,er=0d0
+    real(kind(1d0)) :: sl=0d0                    ,sr=0d0
+    real(kind(1d0)) :: pl=0.5d0-cutoff           ,pr=0.5d0-cutoff
+    real(kind(1d0)) :: dl=0.5d0-cutoff,ol=cutoff ,dr=0.5d0-cutoff,or=cutoff
+    real(kind(1d0)) :: pm=cutoff,pp=cutoff
+    real(kind(1d0)) :: wm=0d0,wl=0d0,wr=0d0,wp=0d0
+    integer         :: idat=0
+    character(nlbl) :: lbl='        '
+  end type
+!
+contains
+!
+  subroutine splvar_init( obj ,aa ,lbl )
+!**********************************************************************
+!* Automatically adapts to integrand of the form
+!*
+!*           / wl*x^(el-1)     0 < x < a
+!*   f(x) = < 
+!*           \ wr*(1-x)^(er-1) a < x < 1
+!*
+!* for arbitray unknown (but positive) parameters  wl,el,wr,er
+!* Takes  a=0.5  if this routine is not called.
+!* Below  cutoff  and above  1-cutoff, the density is constant,
+!* such that it is continuous at  x=cutoff  and at  x=1-cutoff
+!**********************************************************************
+  implicit none
+  type(splvar_type) ,intent(inout) :: obj
+  real(kind(1d0))   ,intent(in)    :: aa
+  character(nlbl)   ,intent(in)    :: lbl
+  if (aa.le.cutoff.or.1d0-cutoff.le.aa) then
+    write(*,*) 'ERROR in splvar_init: aa=',aa,', while it should be' &
+              ,' between',cutoff,' and',1d0-cutoff
+    write(*,*) 'ERROR in splvar_init: putting aa=0.5'
+    obj%a = 0.5d0
+  else
+    obj%a = aa
+  endif
+  obj%dl =     obj%a-cutoff
+  obj%dr = 1d0-obj%a-cutoff
+  obj%lbl = lbl
+  end subroutine
+!
+  subroutine splvar_gnrt( obj ,xx ,rho )
+!**********************************************************************
+!**********************************************************************
+  implicit none
+  type(splvar_type) ,intent(inout) :: obj
+  real(kind(1d0))   ,intent(out)   :: xx
+  real(kind(1d0))   ,intent(in)    :: rho
+  if     (rho.le.obj%pm) then
+    xx = rho/obj%pm
+    xx = cutoff*xx
+!
+  elseif (rho.le.obj%pm+obj%pl) then
+    xx = ( rho - obj%pm )/obj%pl
+    if (obj%el.gt.0d0) then
+      xx = ( obj%dl*xx + obj%ol )**(1d0/obj%el)
+    else
+      xx = (obj%a-cutoff) * xx + cutoff
+    endif
+!
+  elseif (rho.lt.1d0-obj%pp) then
+    xx = ( (rho-obj%pl) - obj%pm )/obj%pr
+    xx = 1d0-xx
+    if (obj%er.gt.0d0) then
+      xx = ( obj%dr*xx + obj%or )**(1d0/obj%er)
+    else
+      xx = (1d0-obj%a-cutoff) * xx + cutoff
+    endif
+    xx = 1d0-xx
+!
+  else
+!    xx = (1d0-rho)/obj%pp
+!    xx = 1d0 - cutoff*xx
+    xx = cutoff/obj%pp
+    xx = (1d0-xx) + xx*rho
+!
+  endif
+  obj%x = xx
+  end subroutine
+!
+  subroutine splvar_wght( obj ,ww,rho ,xx )
+!**********************************************************************
+!**********************************************************************
+  implicit none
+  type(splvar_type) ,intent(inout) :: obj
+  real(kind(1d0))   ,intent(out)   :: ww,rho
+  real(kind(1d0))   ,intent(in)    :: xx
+  if (xx.le.0d0.or.1d0.le.xx) then
+    ww = 0d0
+    rho = 0d0
+    return
+  endif
+  obj%x = xx
+!
+  if     (obj%x.le.cutoff) then
+    ww = cutoff/obj%pm
+    rho = xx/ww
+!
+  elseif (obj%x.le.obj%a) then
+    if (obj%el.gt.0d0) then
+!      ww = obj%dl/obj%el * xx**(1d0-obj%el)
+      rho = xx**obj%el
+      ww = obj%dl/obj%el * xx/rho
+      rho = ( rho-obj%ol )/obj%dl
+    else
+      ww = obj%a-cutoff
+      rho = ( xx-cutoff )/ww
+    endif
+    ww = ww/obj%pl
+    rho = obj%pl*rho + obj%pm
+!
+  elseif (obj%x.lt.1d0-cutoff) then
+    if (obj%er.gt.0d0) then
+!      ww = obj%dr/obj%er * (1d0-xx)**(1d0-obj%er)
+      rho = 1d0-xx
+      rho = rho**obj%er
+      ww = obj%dr/obj%er * (1d0-xx)/rho
+      rho = ( rho-obj%or )/obj%dr
+    else
+      ww = 1d0-obj%a-cutoff
+      rho = ( 1d0-xx-cutoff )/ww
+    endif
+    ww = ww/obj%pr
+    rho = obj%pr*(1d0-rho) + obj%pm + obj%pl
+!
+  else
+    ww = cutoff/obj%pp
+!    rho = 1d0 - (1d0-xx)/ww
+    rho = (1d0-1d0/ww) + xx/ww
+!
+  endif 
+  end subroutine
+!
+  subroutine splvar_collect( obj ,ww )
+!**********************************************************************
+!**********************************************************************
+  implicit none
+  type(splvar_type) ,intent(inout) :: obj
+  real(kind(1d0))   ,intent(in)    :: ww
+  real(kind(1d0)) :: hh
+!
+  if (ww.le.0d0.or.obj%x.le.0d0.or.obj%x.ge.1d0) return
+!
+  if     (obj%x.le.cutoff) then
+    obj%wm = obj%wm + ww
+  elseif (obj%x.le.obj%a) then
+    obj%wl = obj%wl + ww
+    hh = obj%a/obj%x
+    if (hh.gt.0d0) obj%sl = obj%sl + ww*dlog( hh ) 
+  elseif (obj%x.lt.1d0-cutoff) then
+    obj%wr = obj%wr + ww
+    hh = (1d0-obj%a)/(1d0-obj%x)
+    if (hh.gt.0d0) obj%sr = obj%sr + ww*dlog( hh ) 
+  else
+    obj%wp = obj%wp + ww
+  endif
+  obj%idat = obj%idat+1
+  obj%x = -1d0 ! to make sure x is used only once
+!
+  if (mod(obj%idat,nbatch).eq.0) then
+    if (obj%sl.ne.0d0) obj%el = obj%wl/obj%sl
+    if (obj%sr.ne.0d0) obj%er = obj%wr/obj%sr
+    if (obj%el.le.emin) obj%el = emin
+    if (obj%er.le.emin) obj%er = emin
+!
+    obj%ol = cutoff**obj%el
+    obj%dl = obj%a**obj%el - obj%ol
+    obj%or = cutoff**obj%er
+    obj%dr = (1d0-obj%a)**obj%er - obj%or
+!
+!    hh = 0d0
+    hh = obj%wm+obj%wp
+    hh = hh + obj%wl+obj%wr
+    if (hh.gt.0d0) then
+!      obj%pl = (obj%wm+obj%wl)/hh
+!      obj%pr = (obj%wr+obj%wp)/hh
+      obj%pl = obj%wl/hh
+      obj%pr = obj%wr/hh
+      obj%pm = obj%pl * obj%el/obj%dl * cutoff**obj%el ! continuity
+      obj%pp = obj%pr * obj%er/obj%dr * cutoff**obj%er ! continuity
+      hh = obj%pm+obj%pp
+      hh = hh + obj%pl+obj%pr
+      obj%pm = obj%pm/hh
+      obj%pl = obj%pl/hh
+      obj%pr = obj%pr/hh
+      obj%pp = obj%pp/hh
+    endif
+  endif
+  end subroutine
+!
+  subroutine splvar_plot( obj ,iunit )
+!**********************************************************************
+!**********************************************************************
+  implicit none
+  type(splvar_type) ,intent(in) :: obj
+  integer           ,intent(in) :: iunit
+  character(nlbl+3) :: filename
+  character(15) :: pl,el,pr,er,aa,cl,cr,o0,o1,pm,pp
+  if (iunit.le.0) return
+  filename = 'spl'//obj%lbl
+  open( unit=iunit, file=filename, status="replace" )
+  write(iunit,*) '# soft cut-off    :',cutoff
+  write(iunit,*) '# border          :',obj%a
+  write(iunit,*) '# exponents       :',obj%el,obj%er
+  write(iunit,*) '# relative weights:',obj%pl,obj%pr
+  write(iunit,*) '# weights beyond cut-offs:',obj%pm,obj%pp
+  write(pl,'(e15.8)') obj%pl*obj%el/obj%dl
+  write(el,'(e15.8)') obj%el-1d0
+  write(pr,'(e15.8)') obj%pr*obj%er/obj%dr
+  write(er,'(e15.8)') obj%er-1d0
+  write(aa,'(e15.8)') obj%a
+  write(cl,'(e15.8)') cutoff
+  write(cr,'(e15.8)') 1d0-cutoff
+  write(o0,'(e15.8)') 0d0
+  write(o1,'(e15.8)') 1d0
+  write(pm,'(e15.8)') obj%pm/cutoff
+  write(pp,'(e15.8)') obj%pp/cutoff
+  write(iunit,*) 'theta(x) = (1+sgn(x))/2'
+  write(iunit,*) 'bin(x,y,z) = theta(x-y)*theta(z-x)'
+  write(iunit,*) 'fm(x) = bin(x,',o0,',',cl,')*',pm
+  write(iunit,*) 'fl(x) = bin(x,',cl,',',aa,')*',pl,'*   x **(',el,')'
+  write(iunit,*) 'fr(x) = bin(x,',aa,',',cr,')*',pr,'*(1-x)**(',er,')'
+  write(iunit,*) 'fp(x) = bin(x,',cr,',',o1,')*',pp
+  write(iunit,*) 'plot [0:1] fm(x)+fl(x)+fr(x)+fp(x)'
+  close( unit=iunit )
+  end subroutine
+!
+end module
+
+
+! program test
+!   use avh_kaleu_splvar
+!   use avh_kaleu_grid
+!   implicit none
+!   type(splvar_type) :: obj
+!   type(grid_type) :: grid
+!   integer ,parameter :: nev = 50000
+!   real(kind(1d0)) ,parameter :: aa=0.3d0
+!   real(kind(1d0)) ,parameter :: wl=0.2d0,wr=0.8d0
+!   real(kind(1d0)) ,parameter :: el=0.41d0,er=0.25d0
+!   real(kind(1d0)) :: s0=0d0,s1=0d0,s2=0d0
+!   real(kind(1d0)) :: ww,xx,h1,h2,rho,cutoff=0.5d-8
+!   integer :: iev
+! !
+!   call splvar_init( obj ,0.3d0 ,'Example0' )
+!   call grid_init( grid ,100,100,0d0 ,'Example0' )
+! !
+!   do iev=1,nev
+!     call avh_random( rho )
+!     call splvar_gnrt( obj ,xx ,rho )
+!     call splvar_wght( obj ,ww,h1 ,xx )
+!     if (dabs(1d0-rho/h1).gt.1d-12) write(6,*) dabs(rho/h1),rho !DEBUG
+! !    call avh_random( xx )
+! !    ww = 1d0
+!     if (xx.le.cutoff.or.1d0-cutoff.le.xx) then
+!       ww = 0d0
+!     elseif (xx.le.aa) then
+!       ww = ww * wl * xx**(el-1d0) 
+!     else
+!       ww = ww * wr * (1d0-xx)**(er-1d0)
+!     endif
+!     call splvar_collect( obj ,ww )
+!     s0 = s0 + 1d0
+!     s1 = s1 + ww
+!     s2 = s2 + ww*ww
+!     call grid_collect( grid ,ww ,xx )
+!   enddo
+!   call splvar_plot( obj ,21 )
+!   s1 = s1/s0
+!   s2 = dsqrt( ( s2/s0-s1*s1 )/( s0-1d0 ) )
+!   write(6,*) 'result:',s1,s2,s2/s1
+! !
+!   ww = wl * (      aa**(el)-cutoff**(el))/el &
+!      + wr * ((1d0-aa)**(er)-cutoff**(er))/er
+!   write(6,*) 'result:',ww
+! !
+!   call grid_plot( grid ,21 )
+! !
+!   do iev=1,100
+!     xx = dble(iev)/100
+!     if (xx.le.aa) then
+!       h2 = wl * xx**(el-1d0) 
+!     else
+!       h2 = wr * (1d0-xx)**(er-1d0)
+!     endif
+!     write(21,*) xx,h2/ww
+!   enddo
+! !
+! end program

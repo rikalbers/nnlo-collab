@@ -1,0 +1,118 @@
+module avh_kaleu_strf
+  use avh_parni
+!
+  private ! Everything is private, except the following list
+  public :: strf_type,strf_init,strf_updt_xmin,strf_gnrt,strf_wght &
+           ,strf_collect,strf_close,strf_plot
+!
+!! The array dimension of random numbers from parni
+!  integer ,parameter ,private :: avh_parni_dim = avh_parni_dim
+! Unit to which messages are send
+  integer ,parameter ,private :: nunit = 6
+! Batch size and maximum number of channels for grids
+  integer ,parameter ,private :: nbatch=1000 ,nchmax=40000
+!
+  type :: strf_type
+    private
+    real(kind(1d0))      :: x(2)  ! Speak for themselves
+    type(avh_parni_type) :: parni  ! Instances of parni
+  end type
+!
+!
+contains
+!
+!
+  subroutine strf_init( obj ,xmin )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+  real(kind(1d0)) ,intent(in)    :: xmin ! fake
+!
+!  if (nunit.gt.0) then
+  if (.false.) then
+    write(nunit,*) 'MESSAGE from avh_kaleu_strf: ' ,&
+       'dont forget to put the flux factor 1/(2*ecm^2) yourself'
+    write(nunit,*) 'MESSAGE from avh_kaleu_strf: ' ,&
+       'and dont put  1/(2*ehat^2)   but   1/(2*emc^2)'
+  endif
+!
+  call avh_parni_init( obj%parni ,11 ,2 ,nbatch,nchmax )
+  end subroutine
+!
+!
+  subroutine strf_updt_xmin( obj ,xmin )
+!*********************************************************************
+!* Fake routine
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+  real(kind(1d0)) ,intent(in)    :: xmin
+  return
+  end subroutine
+!
+!
+  subroutine strf_gnrt( obj ,x1,x2 )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+  real(kind(1d0)) ,intent(out)   :: x1,x2
+  real(kind(1d0)) :: xparni(avh_parni_dim)
+! Generate variables for structure functions
+  call avh_parni_generate( obj%parni ,xparni )
+  obj%x(1:2) = xparni(1:2)
+  x1 = obj%x(1)
+  x2 = obj%x(2)
+  end subroutine
+!
+!
+  subroutine strf_wght( obj ,weight )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+  real(kind(1d0)) ,intent(out)   :: weight
+  real(kind(1d0)) :: xparni(avh_parni_dim),hh
+!
+  xparni(1:2) = obj%x(1:2)
+  call avh_parni_calcwght( obj%parni ,weight ,xparni )
+  hh = obj%x(1)*obj%x(2)
+  if (hh.ne.0d0) then
+    weight = weight/hh
+  else
+    weight = 0d0
+  endif
+  end subroutine
+!
+!
+  subroutine strf_collect( obj ,weight )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+  real(kind(1d0)) ,intent(in)    :: weight
+  call avh_parni_adaptone( obj%parni ,weight )
+  end subroutine
+!
+!
+  subroutine strf_close( obj )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(inout) :: obj
+  call avh_parni_delete( obj%parni )
+  end subroutine
+!
+!
+  subroutine strf_plot( obj ,iunit )
+!*********************************************************************
+!*********************************************************************
+  implicit none
+  type(strf_type) ,intent(in) :: obj
+  integer         ,intent(in) :: iunit
+  call avh_parni_plot( obj%parni ,iunit ,0 )
+  end subroutine
+!
+!
+end module

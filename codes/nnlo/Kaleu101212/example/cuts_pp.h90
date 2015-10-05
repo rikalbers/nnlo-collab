@@ -1,0 +1,166 @@
+  subroutine cuts_init( cuts ,process,nfinst ,masses ,smin )
+  implicit none
+  type(cuts_type) ,intent(inout) :: cuts
+  integer         ,intent(in)  :: process(-2:17),nfinst
+  real(kind(1d0)) ,intent(in)  :: masses(nfirst:nlast)
+  real(kind(1d0)) ,intent(out) :: smin(-2:17,-2:17)
+  real(kind(1d0)) :: ptl,ptq,ptbot,pttop,ptg,etal,etaq,etabot,etatop &
+                    ,etag,drll,drlq,drqq,drgx,gqq,drqb,gqb,drbb,gbb
+  real(kind(1d0)) :: rr
+  integer :: i,j,i1,j1,j2,prcss(-2:17)
+!
+  call cuts_alloc( cuts ,nfinst )
+!
+! cuts do not distinguish between anti-particles and particles
+  prcss(-2:nfinst) = abs(process(-2:nfinst))
+!
+! -- pp cuts ------------------------------------------------
+  ptl=25d0 ! minimum lepton pt
+  ptq=20.d0 ! minimum quark pt
+  ptbot=20.d0 ! minimum bot pt
+  pttop=0.d0 ! minimum top pt
+  ptg=8.d0 ! minimum photon pt
+  etal=2.5d0 ! maximum rapidity lepton
+  etaq=2.5d0 ! maximum rapidity quark 
+  etabot=2.5d0 ! maximum rapidity bot 
+  etatop=10.d0 ! maximum rapidity top 
+  etag=2.d0 ! maximum rapidity photon
+  drll=0.1d0 ! minimum DR lepton with lepton
+  drlq=0.4d0 ! minimum DR lepton with quark
+  drqq=0.8d0 ! minimum DR quark with quark
+  drgx=0.7d0 ! minimum DR photon with fermion
+  gqq=0.d0 ! minimum mass quark with quark
+  drqb=0.8d0 ! minimum DR quark with b-quark
+  gqb=0.d0 ! minimum mass quark with b-quark
+  drbb=0.8d0 ! minimum DR b-quark with b-quark
+  gbb=0.d0 ! minimum mass b-quark with b-quark
+! -----------------------------------------------------------
+  do i=1,nfinst
+    i1=prcss(i)
+    if (is_photon(i1)) then; cuts%pt(i)=ptg;   cuts%eta(i)=etag;   endif
+    if (is_neutri(i1)) then;                                       endif
+    if (is_chlept(i1)) then; cuts%pt(i)=ptl;   cuts%eta(i)=etal;   endif
+    if (is_qcd(i1))    then; cuts%pt(i)=ptq;   cuts%eta(i)=etaq;   endif
+    if (bquark.eq.i1)  then; cuts%pt(i)=ptbot; cuts%eta(i)=etabot; endif
+    if (tquark.eq.i1)  then; cuts%pt(i)=pttop; cuts%eta(i)=etatop; endif
+  enddo
+! 
+  do i=  1,nfinst-1
+  i1=prcss(i)
+  do j=i+1,nfinst
+  j1=prcss(j)
+    if     (is_neutri(i1) .or.is_neutri(j1)) then
+    elseif (is_qcd(i1)   .and.is_chlept(j1)) then; cuts%dr(i,j)=drlq
+    elseif (is_chlept(i1).and.is_chlept(j1)) then; cuts%dr(i,j)=drll
+    elseif (is_chlept(i1).and.is_qcd(j1) )   then; cuts%dr(i,j)=drlq
+    elseif (is_photon(i1))                   then; cuts%dr(i,j)=drgx
+    elseif (is_photon(j1))                   then; cuts%dr(i,j)=drgx
+    elseif (is_qcd(i1)   .and.is_qcd(j1))    then; cuts%dr(i,j)=drqq
+                                                   cuts%gmas(i,j)=max(gqq,cuts%gmas(i,j))
+    endif
+    if     (bquark.eq.i1.and.bquark.eq.j1) then; cuts%dr(i,j)=drbb
+                                                 cuts%gmas(i,j)=max(gbb,cuts%gmas(i,j))
+    elseif (bquark.eq.i1.and.is_qcd(j1))   then; cuts%dr(i,j)=drqb
+                                                 cuts%gmas(i,j)=max(gqb,cuts%gmas(i,j))
+    elseif (is_qcd(i1).and.bquark.eq.j1)   then; cuts%dr(i,j)=drqb
+                                                 cuts%gmas(i,j)=max(gqb,cuts%gmas(i,j))
+    endif
+  enddo
+  enddo
+!
+  do i=1,nfinst
+    if (cuts%pt(i).gt.0) then; cuts%ec(i)=max(cuts%ec(i),cuts%pt(i))
+    else;                      cuts%ec(i)=max(cuts%ec(i),masses(prcss(i)))
+    endif
+    rr=exp(2*cuts%eta(i))
+    cuts%c1(i)=(rr-1)/(rr+1)
+    cuts%c2(i)=cuts%c1(i)
+  enddo 
+! 
+  do i=1,nfinst-1
+  do j=i+1,nfinst
+    cuts%cc(i,j)=cos(cuts%dr(i,j))
+    cuts%gmas(i,j)=max( cuts%gmas(i,j) &
+                       ,sqrt( 2*cuts%pt(i)*cuts%pt(j)*(1-cos(cuts%dr(i,j))) ) )
+  enddo
+  enddo
+!
+  do i=2,nfinst
+  do j=1,i-1
+    cuts%gmas(i,j)=cuts%gmas(j,i)
+    cuts%cc(  i,j)=cuts%cc(  j,i)
+    cuts%dr(  i,j)=cuts%dr(  j,i)
+  enddo
+  enddo
+!
+! Determine cuts on 2-particle invariants
+  call putsmin( cuts ,process,nfinst ,masses ,smin )
+!
+  end subroutine
+!
+!
+  function cuts_pass( cuts ,pkaleu ) result(value)
+  implicit none
+  type(cuts_type) ,intent(in) :: cuts
+  real(kind(1d0)) ,intent(in) :: pkaleu(0:3,-2:17)
+  logical :: value
+  real(kind(1d0)) :: pt,eta ,d1,d2,dr
+  integer         :: l,l1,l2
+!  
+  value = .false.
+!  
+  do l=1,cuts%nfinst 
+    pt = sqrt( pkaleu(1,l)**2 + pkaleu(2,l)**2 )
+    if (pt.lt.cuts%pt(l)) return
+    eta = rapidity( pkaleu(1:3,l) )
+    if (abs(eta).gt.cuts%eta(l)) return
+  enddo
+!  
+  do l1=1,cuts%nfinst
+  do l2=1,cuts%nfinst
+    if (l1.eq.l2) cycle
+    d1 = rapidity(pkaleu(1:3,l1)) - rapidity(pkaleu(1:3,l2))
+    d2 = ph4(pkaleu(1:3,l1)) - ph4(pkaleu(1:3,l2))
+    d2 = min(abs(d2),twopi-abs(d2))
+    if (d2/twopi.gt.0.5d0) write(*,*) 'WARNING from cuts_pass: d2/2pi=',d2/twopi
+    dr = sqrt( d1*d1 + d2*d2 )
+    if (dr.lt.cuts%dr(l1,l2)) return
+  enddo
+  enddo
+!  
+  value = .true.
+  end function
+!
+!
+  function rapidity(p) result(value)
+  implicit none
+  real(kind(1d0)) ,intent(in) :: p(3)
+  real(kind(1d0)) :: value
+  value=p(3)/sqrt(p(1)**2+p(2)**2+p(3)**2)
+  value=0.5d0*log((1+value)/(1-value))
+  end function
+!
+!
+  function ph4(p) result(value)
+  implicit none
+  real(kind(1d0)) ,intent(in) :: p(3)
+  real(kind(1d0)) :: value
+  real(kind(1d0)) :: ptsq,s2,s
+  ptsq = p(1)**2+p(2)**2
+  if (ptsq.le.0) then
+    if (p(3).ge.0) value=0
+    if (p(3).lt.0) value=twopi/2
+    return
+  endif
+  s2=p(1)**2/ptsq
+  s=sqrt(s2)
+  if(s.gt.1)then
+    write(*,*) 'WARNING from cuts_ph4: s=',s
+    value=0
+    if (p(1).lt.0) value=twopi/2
+    return
+  endif
+  if (p(1).lt.0) s=-sqrt(s2)
+  value = acos(s)
+  if (p(2).lt.0) value=twopi-value
+  end function

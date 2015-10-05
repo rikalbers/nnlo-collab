@@ -1,0 +1,56 @@
+***************
+*** 346,347 ****
+--- 346,349 ----
+        read(5,*) nopt,niter
++      &         ,itmp                 !KALEU
++       call alpgen_kaleu_init( itmp ) !KALEU
+        write(6,*) 'Input number evts to generate:'
+***************
+*** 1837,1838 ****
+--- 1839,1841 ----
+  c     local variables
++       logical alpgen_kaleu_yes !KALEU
+        integer keeps
+***************
+*** 2090,2091 ****
+--- 2093,2098 ----
+  c     events passed all kinematical cuts
++       if (alpgen_kaleu_yes()) then            !KALEU
++         call alpgen_kaleu_wght( jproc ,wusr ) !KALEU
++         pswgt = pswgt*wusr                    !KALEU
++       endif                                   !KALEU
+        weff= ni(jproc)/(ni(jproc)+ipscounti(jproc))
+***************
+*** 2799,2800 ****
+--- 2806,2808 ----
+  c locals
++       logical alpgen_kaleu_yes !KALEU
+        real *8 dummy,wgtt
+***************
+*** 2805,2806 ****
+--- 2813,2817 ----
+        call onedimbin(2,mmask(1),wgtt,1,ndummy,dummy)
++       if (alpgen_kaleu_yes()) then             !KALEU
++       call alpgen_kaleu_collect( jproc ,wgtt ) !KALEU
++       else                                     !KALEU
+        nn=jgrid(jproc)
+***************
+*** 2809,2810 ****
+--- 2820,2822 ----
+        enddo
++       endif                                    !KALEU
+        end
+***************
+*** 5241,5242 ****
+--- 5253,5263 ----
+        end
++ *                                                          !KALEU
++       subroutine return_jproc( jproc_out )                 !KALEU
++       implicit none                                        !KALEU
++       integer jproc_out                                    !KALEU
++       integer jprocmax,jproc,ngrid,jgrid,maxsubproc        !KALEU
++       parameter (maxsubproc= 100)                          !KALEU
++       common/procct/jprocmax,jproc,ngrid,jgrid(maxsubproc) !KALEU
++       jproc_out = jproc                                    !KALEU
++       end                                                  !KALEU
+  

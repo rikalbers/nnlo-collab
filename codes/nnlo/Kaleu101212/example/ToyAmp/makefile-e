@@ -1,0 +1,39 @@
+FC = gfortran
+USERDIR   = ..
+MODELFILE = modelfile
+USERFILE  = userfile
+LIBRARY   = libtoyamp.a
+
+FFLAGS = -O 
+
+%.o : %.f90
+	$(FC) $(FFLAGS) -I$(USERDIR) -c  $*.f90 -o $*.o 
+
+.f.o: 
+	$(FC) $(FFLAGS) -I$(USERDIR) -c $*.f -o $*.o 
+
+OBJECTS = \
+          ./avh_bint.o  \
+          ./toyamp_model.o  \
+          ./toyamp_tree.o  \
+          ./toyamp_kinem.o  \
+          ./toyamp_vertex.o  \
+          ./toyamp.o  \
+          $(MODELFILE).o  \
+          $(USERFILE).o
+
+MODFILES = \
+          ./avh_bint.mod  \
+          ./avh_toyamp_model.mod  \
+          ./avh_toyamp_tree.mod  \
+          ./avh_toyamp_kinem.mod  \
+          ./avh_toyamp_vertex.mod  \
+          ./avh_toyamp.mod
+
+all:		$(LIBRARY) clean
+
+$(LIBRARY):	$(OBJECTS)
+		ar cru $(LIBRARY) $(OBJECTS)
+		ranlib $(LIBRARY)
+
+clean:;	rm -f $(OBJECTS) $(MODFILES) *.mod

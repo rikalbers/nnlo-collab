@@ -1,0 +1,91 @@
+KALEUHOME = /home/malgorzata/Projects/e+e-/kaleu/Kaleu100520
+KALEULIB0 = kaleu_dipoles0
+KALEULIB1 = kaleu_dipoles1
+
+FFLAGS = -O3 -I..
+LDFLAGS = -static
+LIBS    = -L$(KALEUHOME) -l$(KALEULIB1)
+LIBS_I  = -L$(KALEUHOME) -l$(KALEULIB0)
+LIBS_KP = -L$(KALEUHOME) -l$(KALEULIB0)
+
+#Vs = 
+#Vs = _sym
+Vs = _cth
+PR = dp
+EXE = ${PR}
+
+#RANDOM = random
+RANDOM = ranmar
+
+OBJS_HELAC = physics.o  \
+             master_new.o \
+             pan1.o \
+             pan2.o \
+             intpar.o \
+             wavef.o \
+             feynman.o \
+             precision_${PR}.o \
+             rambo.o ${RANDOM}.o math.o \
+             phegas8${Vs}.o phegas8_ex_${PR}.o \
+             histo.o mc.o mtime.o mytime.o durham.o adapt.o \
+             avh_parni.o ktreweight.o Cteq61Pdf.o
+
+OBJS_HELAC_IKP = $(OBJS_HELAC) cuts_auto_pp.o
+
+OBJS_DIPOLES = main_kaleu_dip.o integration_kaleu_dip.o helac2kaleu.o readcuts_kaleu_dip.o \
+               dipoles.o amplitude.o color.o \
+               jetfunctions.o histograms.o coupling.o structf_cteq.o \
+               utilities.o
+
+OBJS_DIPOLES_I = main_kaleu_I.o integration_kaleu_I.o helac2kaleu.o readcuts_kaleu_dip.o \
+                 dipoles_I.o amplitude.o color.o \
+                 histograms.o coupling.o structf_cteq.o utilities.o
+
+OBJS_DIPOLES_KP = main_kaleu_KP.o integration_kaleu_KP.o helac2kaleu.o readcuts_kaleu_dip.o \
+                 dipoles_KP.o amplitude.o color.o \
+                 histograms.o coupling.o structf_cteq_KP.o utilities.o
+
+target: helac-phegas-dipoles.exe \
+        helac-phegas-dipoles_I.exe helac-phegas-dipoles_KP.exe
+
+helac-phegas-dipoles.exe: $(OBJS_HELAC) $(OBJS_DIPOLES)
+	$(FC) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+helac-phegas-dipoles_I.exe: $(OBJS_HELAC_IKP) $(OBJS_DIPOLES_I)
+	$(FC) $(LDFLAGS) -o $@ $^ $(LIBS_I)
+
+helac-phegas-dipoles_KP.exe: $(OBJS_HELAC_IKP) $(OBJS_DIPOLES_KP)
+	$(FC) $(LDFLAGS) -o $@ $^ $(LIBS_KP)
+
+$(OBJS_HELAC_IKP):
+	make -C ../ -f makefile_PP_standalone $@ 
+	cp ../$@ .
+
+.PHONY: trees run clean
+
+trees:
+	for i in input[0-9]*; do \
+	  ./helac-phegas-dipoles.exe < $$i; \
+	done
+	mv tree_* helac_trees
+	rm -f input[0-9]* even_* sample* kine_*
+
+run: helac-phegas-dipoles.exe
+	./helac-phegas-dipoles.exe < dipoles.input
+
+run_I: helac-phegas-dipoles_I.exe
+	./helac-phegas-dipoles_I.exe < dipoles_I.input
+
+run_KP: helac-phegas-dipoles_KP.exe
+	./helac-phegas-dipoles_KP.exe < dipoles_KP.input
+
+clean:
+	rm -f *.exe *.o *~ input[0-9]* err_file* hi_file*
+	rm -f tree_* even_* sample* kine_* data.*
+	make -C ../ -f makefile_PP_standalone clean
+
+# dependencies
+
+$(OBJS_DIPOLES): dimensions.h
+jetfunctions.o: cuts.h
+readcuts_kaleu_dip.o: cuts.h

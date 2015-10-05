@@ -1,0 +1,44 @@
+beam1 -11
+beam2  11
+ebeam1 60d0
+ebeam2 60d0
+
+muscale 120.0d0	! If minus a dynamic scale is used
+
+#seed 123456
+seed 1234
+
+#debugsme 1
+#debugscsme 1
+#debugccsme 1
+#debugI1op 1
+
+nevents 10000000
+
+niter 20
+nbatch 20000
+nstep     10
+thrs    1d-3
+
+LO  1
+NLO_R 1
+NLO_V 1
+NNLO 0
+
+noNLO_R_A1 0
+
+cuts 0
+
+orderas 1
+alphas 3.14159d0
+
+scalestudy 0
+scalevarpar 2
+scaleoffdiag 0
+
+noanalysis 1
+
+manyseeds 0
+
+alpha0 1.0d0
+y0     1.0d0

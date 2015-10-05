@@ -1,0 +1,71 @@
+#Vs=
+#Vs=_sym
+Vs=_cth
+PR=dp
+EXE=${PR}
+
+#RANDOM=random
+RANDOM=ranmar
+
+KALEUHOME = /home/malgorzata/Projects/e+e-/kaleu/Kaleu100520
+KALEULIB = kaleu_dipoles0
+
+
+PDF=pdfset_cteq
+STRUCTF=structf_cteq
+PHEGASSTRF=phegasstrf_default
+ALPHAS=alphas_std
+
+CUT=cuts_auto_pp
+
+FILEEXE = main_mc_${EXE}
+FILE = main_kaleu
+
+
+#FC	= pgf90
+#FC	= lf95
+FFLAGS	= -O3 -static #--nquad 
+#-debug-parameters all -traceback -ftrapuv -g -fpe3 -check all -I..                                         
+#-fpe3 -traceback  #--trap 
+
+
+.f.o: 
+	cp ${PDF}.h pdfset.h
+	cp ${ALPHAS}.h alphas.h
+	cp $(PHEGASSTRF).h phegasstrf.h
+	cp declare_${PR}.h declare.h
+	$(FC) $(FFLAGS) -c $*.f -o $*.o 
+
+OBJECTS1= 
+ifeq (${PR},qp) 
+OBJECTS1= qprec.o
+endif
+OBJECTS = ${OBJECTS1} ./$(FILE).o \
+          ./integration_kaleu.o  \
+          ./physics.o  \
+          ./master_new.o \
+          ./pan1.o \
+          ./pan2.o \
+          ./intpar.o \
+          ./wavef.o \
+          ./feynman.o \
+          ./${CUT}.o \
+          ./precision_${PR}.o \
+          ./rambo.o ./${RANDOM}.o ./math.o \
+          ./phegas8${Vs}.o ./phegas8_ex_${PR}.o \
+          ./$(STRUCTF).o Cteq61Pdf.o \
+          ./histo.o ./mc.o mtime.o ./mytime.o ./durham.o ./adapt.o \
+          avh_parni.o ktreweight.o
+
+
+a.out: $(OBJECTS) 
+	$(FC) -o $(FILEEXE).exe $(FFLAGS) $(OBJECTS) -L$(KALEUHOME) -l$(KALEULIB);
+	rm physics.o
+
+
+
+clean:
+	rm *.o *.exe data.* even_* kine_*
+
+run:
+	./$(FILEEXE).exe < input

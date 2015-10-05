@@ -1,0 +1,56 @@
+FC        = gfortran
+MODELFILE = ./helac/modelfile
+USERFILE  = ./helac/userfile
+RNGFILE   = ./helac/random
+LIBRARY   = libkaleu_helac.a
+
+FFLAGS = -O 
+
+SRCDIR = ./src
+VRSDIR = ./src/v0
+BUILD  = ./build
+
+%.o : %.f90
+	$(FC) $(FFLAGS) -c  $*.f90 -o $*.o 
+
+.f.o: 
+	cp $(SRCDIR)/*.f90 $(BUILD)
+	cp $(VRSDIR)/*     $(BUILD)
+	$(FC) $(FFLAGS) -c $*.f -o $*.o 
+
+OBJECTS = \
+          $(RNGFILE).o  \
+          $(BUILD)/avh_bint.o  \
+          $(BUILD)/avh_print.o  \
+          $(BUILD)/kaleu_grid.o  \
+          $(BUILD)/kaleu_model.o  \
+          $(BUILD)/kaleu_tree.o  \
+          $(BUILD)/kaleu_strf.o  \
+          $(BUILD)/kaleu_kinem.o  \
+          $(BUILD)/kaleu_mulcha.o  \
+          $(BUILD)/kaleu_ranvar.o  \
+          $(BUILD)/kaleu_vertex.o  \
+          $(BUILD)/kaleu.o  \
+          $(MODELFILE).o  \
+          $(USERFILE).o
+
+MODFILES = \
+          ./avh_bint.mod  \
+          ./avh_print.mod  \
+          ./avh_kaleu_grid.mod  \
+          ./avh_kaleu_model.mod  \
+          ./avh_kaleu_tree.mod  \
+          ./avh_kaleu_strf.mod  \
+          ./avh_kaleu_kinem.mod  \
+          ./avh_kaleu_mulcha.mod  \
+          ./avh_kaleu_ranvar.mod  \
+          ./avh_kaleu_vertex.mod  \
+          ./avh_kaleu.mod
+
+all:		$(LIBRARY) clean
+
+$(LIBRARY):	$(OBJECTS)
+		ar cru $(LIBRARY) $(OBJECTS)
+		ranlib $(LIBRARY)
+
+clean:;	rm -f $(OBJECTS) $(MODFILES) *.mod

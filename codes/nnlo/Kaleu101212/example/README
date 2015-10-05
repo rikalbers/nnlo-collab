@@ -1,0 +1,23 @@
+
+
+This is an example of the use of Kaleu in a Monte Carlo program. The
+files kaleu_* in this directory are going to be part of the Kaleu
+library for the specific application in this example. They are supposed
+to be written by the user of Kaleu.
+
+There is a toy amplitude calculator "ToyAmp" in this example.
+
+Put the correct fortran compiler in the script file "all.sh", and
+execute it.
+Then, you can edit the input, and execute "./montecarlo.exe < input"
+
+For the example of Kaleu with dipole channels, you put the correct
+fortran compiler in the script file "allNLO.sh", and execute that
+one.
+Then, you edit inputNLO, and execute "./montecarloNLO.exe < inputNLO"
+
+If you do not touch the libraries of Kaleu or ToyAmp anymore, you can
+from now on just "make" or "make -f makefileNLO" if you change
+something.
+
+

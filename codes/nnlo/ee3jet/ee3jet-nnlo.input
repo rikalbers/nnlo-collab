@@ -1,0 +1,66 @@
+beam1 -11
+beam2  11
+ebeam1 45.6d0
+ebeam2 45.6d0
+
+muscale 91.2d0	! If minus a dynamic scale is used
+
+seed 1223
+
+#debugsme 1
+#debugscsme 1
+#debugccsme 1
+#debugI1op 1
+#debugsccsme 1
+#debugdccsme 1
+#debugpoles 1
+#scatterplot 1
+
+nevents 1000000
+
+niter 10
+niterBkin 10
+niterRkin 10
+niterRRkin 100
+
+nbatch 50000
+nstep      2
+nbatchRRkin 50000
+thrs    1d-3
+
+LO  0
+NLO_R 0
+NLO_V 0
+NNLO_RR 1
+NNLO_RV 0
+NNLO_VV 0
+
+noNLO_R_A1 0
+noNNLO_RV_A1 0
+noNNLO_RR_A1 0
+noNNLO_RR_A2 0
+noNNLO_RR_A12 0
+
+noNNLO_R_I1 0
+
+cuts 0
+cutfunc 1
+
+orderas 3
+alphas 0.118d0
+alphaem 1.32231949d+02
+
+scalestudy 0
+scalevarpar 2
+scaleoffdiag 0
+
+noanalysis 1
+
+manyseeds 0
+
+alphamax 1.0d0
+
+regioncheck 0
+ymin 1d-4
+
+scatterplot 0

@@ -1,0 +1,10 @@
+
+
+In order to use Helac-Dipoles with Kaleu, you need to copy the files
+from the directory "to_helac_dir" to the Helac-directory and the files
+from "to_dipoles_dir" to the Dipoles-directory. Then you make there
+with "makefile_kaleu_dip". Don't forget to put the correct FC and value
+for KALEUHOME in this makefile.  Also realize that "input_kaleu_dip"
+has one extra line.
+
+ 
