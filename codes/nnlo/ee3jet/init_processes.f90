@@ -83,8 +83,8 @@ implicit none
 ! For testing:
 !    proc_NLO(3) = 'u '
 !    proc_NLO(4) = 'u~'
-!    proc_NLO(5) = 'd '
-!    proc_NLO(6) = 'd~'
+!    proc_NLO(5) = 'g '
+!    proc_NLO(6) = 'g '
 !
     print *,"The process at the NLO-R level: "
     do ileg=1,nleg_born+1
@@ -113,12 +113,12 @@ implicit none
 ! We define the process at the NNLO level:
     proc_NNLO(1:nleg_born+1) = proc_NLO(1:nleg_born+1)
     proc_NNLO(7) = 'j '
-    proc_NNLO(7) = 'g '
+!    proc_NNLO(7) = 'g '
 !
-    proc_NNLO(3) = 'u '
-    proc_NNLO(4) = 'u~'
-    proc_NNLO(5) = 'd '
-    proc_NNLO(6) = 'd~'
+!    proc_NNLO(3) = 'u '
+!    proc_NNLO(4) = 'u~'
+!    proc_NNLO(5) = 'd '
+!    proc_NNLO(6) = 'd~'
 !
     print *,"The process at the NNLO-RR level: "
     do ileg=1,nleg_born+2

@@ -227,6 +227,8 @@ implicit none
 !
   logical :: flg_Bijk
 !
+  logical :: flg_dipolechan
+!
 contains
 !
 subroutine init_flags()
@@ -324,6 +326,11 @@ implicit none
 ! each with a different random seed:
   flg_manyseeds = .false.
   if (nnloinput("#manyseeds").eq.1) flg_manyseeds = .true.
+!
+! We offer the possibility to optimize also on dipole channels:
+! This is turned on by default:
+  flg_dipolechan = .true.
+  if (nnloinput("#optdipchan").eq.0) flg_dipolechan = .false.
 !
 end subroutine init_flags
 !

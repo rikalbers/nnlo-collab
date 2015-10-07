@@ -71,6 +71,23 @@ implicit none
   integer :: numproc
   integer , dimension(-2:17) :: subproc
 !
+  integer :: ndip
+  integer , dimension(:,:) , allocatable :: dip_tmp
+!
+  real(kind(1d0)) , parameter :: alphamax_kaleu = 0.999d0
+!
+  interface
+    subroutine GenerateDipoles(flv,nflv_UB,flv_UB_arr,ndip,dips)
+    implicit none
+!
+      integer , dimension(:) , intent(in) :: flv
+      integer , intent(in) :: nflv_UB
+      integer , dimension(:,:) , intent(in) :: flv_UB_arr
+      integer , intent(out) :: ndip
+      integer , dimension(:,:) , allocatable , intent(out) :: dips
+!
+    end subroutine GenerateDipoles
+  end interface
 !
   print *,"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
   print *,"@                                                          @"
@@ -200,11 +217,21 @@ implicit none
 !
       jproc = iproc
 !
-      call multi_kaleu_init(iproc,subproc,nleg_born-2, &
-                            rstot,PDF_option, &
-                            masses,widths,labels, &
-                            onlyqcd,withqcd,withhiggs, &
-                            nbatchBkin,nstepBkin,thrsBkin,smin)
+! For Born-like kinematics no Dipole has to be defined:
+      ndip = 0
+!
+! Note that the alphamax here is set to one and ymin is set
+! at a different point, if the PS point is deeper than ymin it is
+! returned to the generator was a point with zero weight, hence to
+! optimize it away:
+      call multi_kaleu_init(iproc,subproc,nleg_born-2,          &
+                            rstot,PDF_option,                   &
+                            masses,widths,labels,               &
+                            onlyqcd,withqcd,withhiggs,          &
+                            nbatchBkin,nstepBkin,thrsBkin,smin, &
+                            alphamax_kaleu,alphamax_kaleu,      &
+                            alphamax_kaleu,alphamax_kaleu,      &
+                            ndip,dip_tmp)
     end do
   end if
 !=======================================================================
@@ -231,11 +258,23 @@ implicit none
 !
       jproc = iproc + num_flv_ch_Bkin
 !
-      call multi_kaleu_init(jproc,subproc,nleg_born-1, &
-                            rstot,PDF_option, &
-                            masses,widths,labels, &
-                            onlyqcd,withqcd,withhiggs, &
-                            nbatchRkin,nstepRkin,thrsRkin,smin)
+! This version of Kaleu allows for multichannel optimization including
+! dipole channels too:
+      ndip = 0
+      if (flg_dipolechan) then
+        call GenerateDipoles(flv_ch_Rkin(:,iproc), &
+                             num_flv_LO,flv_LO,    &
+                             ndip,dip_tmp)
+      end if
+!
+      call multi_kaleu_init(jproc,subproc,nleg_born-1,          &
+                            rstot,PDF_option,                   &
+                            masses,widths,labels,               &
+                            onlyqcd,withqcd,withhiggs,          &
+                            nbatchRkin,nstepRkin,thrsRkin,smin, &
+                            alphamax_kaleu,alphamax_kaleu,      &
+                            alphamax_kaleu,alphamax_kaleu,      &
+                            ndip,dip_tmp)
     end do
   end if
 !=======================================================================
@@ -262,11 +301,14 @@ implicit none
 !
       jproc = iproc + num_flv_ch_Bkin + num_flv_ch_Rkin
 !
-      call multi_kaleu_init(jproc,subproc,nleg_born, &
-                            rstot,PDF_option, &
-                            masses,widths,labels, &
-                            onlyqcd,withqcd,withhiggs, &
-                            nbatchRRkin,nstepRRkin,thrsRRkin,smin)
+      call multi_kaleu_init(jproc,subproc,nleg_born,               &
+                            rstot,PDF_option,                      &
+                            masses,widths,labels,                  &
+                            onlyqcd,withqcd,withhiggs,             &
+                            nbatchRRkin,nstepRRkin,thrsRRkin,smin, &
+                            alphamax_kaleu,alphamax_kaleu,         &
+                            alphamax_kaleu,alphamax_kaleu,         &
+                            ndip,dip_tmp)
     end do
   end if
 !
@@ -512,7 +554,7 @@ implicit none
   if (cont.eq.'Rkin ') jproc = num_flv_ch_Bkin + iproc
   if (cont.eq.'RRkin') jproc = num_flv_ch_Bkin + num_flv_ch_Rkin + iproc
 !
-  call multi_kaleu_collect(jproc,weight)
+  call multi_kaleu_collect(jproc,abs(weight))
 !
 end subroutine PutWeight_PSgen
 !

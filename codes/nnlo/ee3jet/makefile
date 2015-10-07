@@ -44,7 +44,7 @@ LIBS+= -lkaleu_nnlo
 
 KALEUVER = Kaleu101212
 KALEUDIR = $(HOME)/$(KALEUVER)
-KALEU = kaleu_modelfile.f90 kaleu_particles.f90 kaleu_userfile.f90 \
+KALEU = kaleu_modelfile.f90 kaleu_particles.f90 kaleu_userfile_dipoles.f90 \
 	kaleu_random.f #ranlux.f
 
 FJCORE = fjcore.o JadePlugin.o
@@ -85,7 +85,7 @@ USER =  contb.o contr.o contv.o contvv.o contrr.o contrv.o init_processes.o \
 NNLO = $(MODULES) main.o genprocesses.o boost.o \
        reshuffle.o debug.o random.o regions.o sigma.o alpha.o \
        subtractions.o checklimits.o checkpoles.o ap.o iops.o multi_rambo.o \
-       ranlux.o hplog.o regioncheck.o \
+       ranlux.o hplog.o regioncheck.o dipoles.o \
        $(USER)
 
 nnlo : $(NNLO)

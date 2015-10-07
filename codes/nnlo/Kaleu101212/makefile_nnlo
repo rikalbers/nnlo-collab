@@ -1,5 +1,6 @@
+SPLVAR = both
 MODELFILE = kaleu_modelfile
-USERFILE  = kaleu_userfile
+USERFILE  = kaleu_userfile_dipoles
 RNGFILE   = kaleu_random
 PARTICLES = kaleu_particles
 LIBRARY   = libkaleu_nnlo.a
@@ -8,9 +9,9 @@ FFLAGS = $(OPT)
 FFLAGS += $(DEBUG)
 
 SRCDIR = ./src
-# VRSDIR=v0 means that only "leading-order" phase space above LO cuts
-# is completely populated.
-VRSDIR = ./src/v0
+# VRSDIR=v1 means that also "higher-order" phase space below LO cuts
+# is populated, following integrable (1/sqrt-like) distributions.
+VRSDIR = ./src/v1
 BUILD  = ./build
 
 %.o : %.f90
@@ -24,6 +25,7 @@ OBJECTS = \
           $(BUILD)/avh_bint.o  \
           $(BUILD)/avh_print.o  \
           $(BUILD)/kaleu_grid.o  \
+          $(BUILD)/kaleu_splvar.o  \
           $(BUILD)/kaleu_model.o  \
           $(BUILD)/kaleu_tree.o  \
           $(BUILD)/kaleu_strf.o  \
@@ -32,6 +34,7 @@ OBJECTS = \
           $(BUILD)/kaleu_ranvar.o  \
           $(BUILD)/kaleu_vertex.o  \
           $(BUILD)/kaleu.o  \
+          $(BUILD)/kaleu_dipol.o  \
 	  $(PARTICLES).o \
           $(MODELFILE).o \
           $(USERFILE).o
@@ -54,6 +57,7 @@ all:		copy $(LIBRARY) clean
 copy: 
 	cp $(SRCDIR)/*.f90 $(BUILD)
 	cp $(VRSDIR)/*     $(BUILD)
+	cp $(SRCDIR)/dipol_$(SPLVAR)/* $(BUILD)
 
 $(LIBRARY):	$(OBJECTS)
 		ar cru $(LIBRARY) $(OBJECTS)

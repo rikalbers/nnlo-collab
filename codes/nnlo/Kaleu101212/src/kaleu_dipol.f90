@@ -135,7 +135,7 @@ contains
       line = trim(line)//' , '//trim(sparticle(mdl,process(-2)))        &
                          //' '//trim(sparticle(mdl,process(-1)))//' ->'
       do l2=1,nfinst-1
-        line = trim(line)//' '//trim(sparticle(mdl,process(l2)))
+        line = trim(line)//' '//trim(sparticle(mdl,tmpproc(l2)))
       enddo
       write(nunit,*) trim(line)
     endif
