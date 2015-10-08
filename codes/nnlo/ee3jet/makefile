@@ -1,6 +1,6 @@
 COMPILER = ifort
 
-ANALYSIS=-thrust-SW
+ANALYSIS=-eventshapes-SW
 
 ifeq ($(COMPILER),ifort)
 FC = ifort
