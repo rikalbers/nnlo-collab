@@ -391,6 +391,9 @@ implicit none
   else
     xif = 1d0
   end if
+! baseF has to be initialized here to avoid an annoying SIGFPE with
+! certain versions of gfortran:
+  baseF = -1
 ! We not only initialize the scale but if needed set up everything 
 ! for scale studies:
   if (flg_scalestudy) then
