@@ -125,3 +125,28 @@ implicit none
   deallocate(dips_tmp)
 !
 end subroutine GenerateDipoles
+!
+subroutine GenerateDipolesSquared(flv,nflv_UB,flv_UB_arr,ndipsqr,dipsqr)
+use subprocesses
+use particles
+use QCDparams
+use utils
+use regions
+implicit none
+!
+  integer , dimension(:) , intent(in) :: flv
+  integer , intent(in) :: nflv_UB
+  integer , dimension(:,:) , intent(in) :: flv_UB_arr
+  integer , intent(out) :: ndipsqr
+  integer , dimension(:,:) , allocatable , intent(out) :: dipsqr
+!
+!
+!
+  ndipsqr = 0
+!
+  print *,"The current subprocess is: "
+  call PrintSubproc(flv)
+!
+  stop "GenerateDipolesSquared"
+!
+end subroutine GenerateDipolesSquared

@@ -5,10 +5,10 @@ ANALYSIS=-eventshapes-SW
 ifeq ($(COMPILER),ifort)
 FC = ifort
 #FFLAGS = -real-size 128
-FFLAGS = -real-size 64
+FFLAGS = -real-size 64 -fp-model precise -fp-model source
 CXX = icpc
 CXXFLAGS =
-DEBUG = #-g -traceback
+DEBUG =#-g -debug-parameters all -traceback -fpe0 -check all -ftrapuv -debug all #-fpe0 -g -traceback
 OPT = -O3
 SAVEFLAG = #-save
 STATIC=

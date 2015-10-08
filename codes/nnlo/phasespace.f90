@@ -71,8 +71,8 @@ implicit none
   integer :: numproc
   integer , dimension(-2:17) :: subproc
 !
-  integer :: ndip
-  integer , dimension(:,:) , allocatable :: dip_tmp
+  integer :: ndip,ndipsqr
+  integer , dimension(:,:) , allocatable :: dip_tmp,dipsqr_tmp
 !
   real(kind(1d0)) , parameter :: alphamax_kaleu = 0.999d0
 !
@@ -87,6 +87,18 @@ implicit none
       integer , dimension(:,:) , allocatable , intent(out) :: dips
 !
     end subroutine GenerateDipoles
+!
+    subroutine GenerateDipolesSquared(flv,nflv_UB,flv_UB_arr, &
+                                      ndipsqr,dipsqr)
+    implicit none
+!
+      integer , dimension(:) , intent(in) :: flv
+      integer , intent(in) :: nflv_UB
+      integer , dimension(:,:) , intent(in) :: flv_UB_arr
+      integer , intent(out) :: ndipsqr
+      integer , dimension(:,:) , allocatable , intent(out) :: dipsqr
+!
+    end subroutine GenerateDipolesSquared
   end interface
 !
   print *,"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
@@ -300,6 +312,20 @@ implicit none
 !      print *,"flv: ",subproc
 !
       jproc = iproc + num_flv_ch_Bkin + num_flv_ch_Rkin
+!
+! For the RR part we need dipole and squared dipole channels as well:
+      ndip = 0
+      if (flg_dipolechan) then
+        call GenerateDipoles(flv_ch_RRkin(:,iproc),   &
+                             num_flv_NLO_R,flv_NLO_R, &
+                             ndip,dip_tmp)
+      end if
+      ndipsqr = 0
+      if (flg_dipsqrchan) then
+        call GenerateDipolesSquared(flv_ch_RRkin(:,iproc), &
+                                    num_flv_LO,flv_LO,     &
+                                    ndipsqr,dipsqr_tmp)
+      end if
 !
       call multi_kaleu_init(jproc,subproc,nleg_born,               &
                             rstot,PDF_option,                      &

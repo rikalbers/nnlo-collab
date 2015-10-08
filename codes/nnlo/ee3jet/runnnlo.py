@@ -142,7 +142,8 @@ def CombineHistos(hista,histb):
 # correspond to the same bin:
     if (bincontent[0] == histb[ibin][0]) and (bincontent[1] == histb[ibin][1]):
       hista[ibin][2] += histb[ibin][2]
-      hista[ibin][3] += histb[ibin][3]
+#      hista[ibin][3] += histb[ibin][3]**2
+      hista[ibin][3] += histb[ibin][2]**2
     else:
       print "We tried to combine bins, but they mismatch..."
       sys.exit()
@@ -257,7 +258,8 @@ def CollectData(proc):
     for ihisto in xrange(len(histodata)):
       for ibin in xrange(len(histodata[ihisto])):
         histodata[ihisto][ibin][2] = histodata[ihisto][ibin][2]/nfiles
-        histodata[ihisto][ibin][3] = math.sqrt(histodata[ihisto][ibin][3])/nfiles
+#        histodata[ihisto][ibin][3] = math.sqrt(histodata[ihisto][ibin][3]/(nfiles-1))
+        histodata[ihisto][ibin][3] = math.sqrt(abs(histodata[ihisto][ibin][3]/(nfiles) - histodata[ihisto][ibin][2]**2))
 # Then, finally, we save the histograms to a file:
     if cmulti == '':
       SaveHistos(proc,fname0,histodata,titles)

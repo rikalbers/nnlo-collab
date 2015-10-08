@@ -227,7 +227,7 @@ implicit none
 !
   logical :: flg_Bijk
 !
-  logical :: flg_dipolechan
+  logical :: flg_dipolechan,flg_dipsqrchan
 !
 contains
 !
@@ -331,6 +331,10 @@ implicit none
 ! This is turned on by default:
   flg_dipolechan = .true.
   if (nnloinput("#optdipchan").eq.0) flg_dipolechan = .false.
+! For the RR contribution not only dipole but squared dipole
+! channels are needed to achieve the most out of Kaleu:
+  flg_dipsqrchan = .true.
+  if (nnloinput("#optdipsqrchan").eq.0) flg_dipsqrchan = .false.
 !
 end subroutine init_flags
 !

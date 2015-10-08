@@ -1005,8 +1005,10 @@ implicit none
 ! the cuts:
   cfunc = 0d0
 ! If cuts are requested, call the cuts routine:
-  if (flg_cuts) call apply_cuts(p,icut)
-  cfunc = cfunc + icut
+  if (flg_cuts) then
+    call apply_cuts(p,icut)
+    cfunc = cfunc + icut
+  end if
 ! Can have a cut function, too:
   if (flg_cutfunc) call cutfunc(p,cfunc)
 !
