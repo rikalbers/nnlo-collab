@@ -5335,6 +5335,7 @@ use histo
 use nlo_subtractions
 use nnlo_subtractions
 use nlo_mom_maps
+use counters
 implicit none
 !
   type(particle) , dimension(:) , intent(in) :: p
@@ -5490,6 +5491,8 @@ implicit none
 ! ymin and NaN tests:
       call yminCut(ptilde(:)%p,icut)
       call IsNaNmom(ptilde,inan)
+      if (icut.eq.0) call add_counter("ymin in Cir")
+      if (inan.eq.0) call add_counter("NaN in Cir")
       if ((icut.eq.0).or.(inan.eq.0)) then
         call drop_hist
         weightPS = 0
@@ -5646,6 +5649,8 @@ implicit none
 ! ymin and NaN tests:
     call yminCut(ptilde(:)%p,icut)
     call IsNaNmom(ptilde,inan)
+    if (icut.eq.0) call add_counter("ymin in Sr")
+    if (inan.eq.0) call add_counter("NaN in Sr")
     if ((icut.eq.0).or.(inan.eq.0)) then
       call drop_hist
       weightPS = 0

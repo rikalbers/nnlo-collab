@@ -6,6 +6,7 @@ use statistics
 use histo
 use phasespace
 use scales
+use counters
 implicit none
 !
 !
@@ -21,6 +22,8 @@ implicit none
 !
 ! We finalize the statistics and write out the histos:
   call output_stat
+! We also print out the counters:
+  call output_counter
   if (flg_analysis) call output_hist
 !
 end subroutine NNLOcalc

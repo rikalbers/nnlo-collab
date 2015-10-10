@@ -701,3 +701,211 @@ implicit none
 end subroutine print_hist
 !
 end module histo
+!
+! This module implements the concept of counters which can be 
+! useful for book-keeping various events during runtime:
+module counters
+implicit none
+!
+  type counter
+    character (len=256) :: title
+    integer :: intcount
+    real(kind(1d0)) :: realcount
+  end type counter
+!
+  integer :: ncount = 0
+  integer , parameter :: maxcount = 256
+  type(counter) , dimension(:) , allocatable :: counter_arr
+!
+interface add_counter
+  module procedure add_counter_int
+  module procedure add_counter_real
+end interface add_counter
+!
+contains
+!
+! This routine increments the integer counter by one for the
+! counter named title:
+subroutine add_counter_int(title)
+implicit none
+!
+  character (len=*) , intent(in) :: title
+!
+  integer icount,istat
+  type(counter) , dimension(:) , allocatable :: counter_tmp_arr
+!
+!
+! Looking for the position of the counter:
+  do icount=1,ncount
+    if (trim(counter_arr(icount)%title).eq.trim(title)) exit
+  end do
+! If icount is greater then ncount the counter has not used yet,
+! it has to be (re)allocated:
+  if (icount.gt.ncount) then
+! If the array holding the counters is already allocated
+! it has to be deallocated first:
+    if (allocated(counter_arr)) then
+! Allocate a temporary array to hold the content of counter_arr
+! while it is reallocated:
+      allocate(counter_tmp_arr(ncount),stat=istat)
+      if (istat.ne.0) then
+        print *,"Error while allocating counter_tmp_arr..."
+        stop "add_counter_int"
+      end if
+! Copy everything:
+      counter_tmp_arr(1:ncount) = counter_arr(1:ncount)
+! Deallocate:
+      deallocate(counter_arr)
+! Allocate it again but with increased number of items:
+      allocate(counter_arr(ncount+1),stat=istat)
+      if (istat.ne.0) then
+        print *,"Error while allocating counter_arr..."
+        stop "add_counter_int"
+      end if
+! Copy previous content: 
+      counter_arr(1:ncount) = counter_tmp_arr(1:ncount)
+! Deallocate the temporary array:
+      deallocate(counter_tmp_arr)
+! If the counter array was never used before it only has to
+! be allocated once:
+    else
+      allocate(counter_arr(ncount+1),stat=istat)
+      if (istat.ne.0) then
+        print *,"Error while allocating counter_arr..."
+        stop "add_counter_int"
+      end if
+    end if
+! The dimension of counter_arr is extended, hence it can
+! accomodate the new counter:
+    ncount = ncount + 1
+    counter_arr(ncount)%title = trim(title)
+    counter_arr(ncount)%intcount = 1
+    counter_arr(ncount)%realcount = 0
+! Otherwise simply increment the counter:
+  else
+    counter_arr(icount)%intcount = counter_arr(icount)%intcount + 1
+  end if
+!
+end subroutine add_counter_int
+!
+! This routine increments the real counter by val for the
+! counter named title:
+subroutine add_counter_real(title,val)
+implicit none
+!
+  character (len=*) , intent(in) :: title
+  real(kind(1d0)) , intent(in) :: val
+!
+  integer icount,istat
+  type(counter) , dimension(:) , allocatable :: counter_tmp_arr
+!
+!
+! Looking for the position of the counter:
+  do icount=1,ncount
+    if (trim(counter_arr(icount)%title).eq.trim(title)) exit
+  end do
+! If icount is greater then ncount the counter has not used yet,
+! it has to be (re)allocated:
+  if (icount.gt.ncount) then
+! If the array holding the counters is already allocated
+! it has to be deallocated first:
+    if (allocated(counter_arr)) then
+! Allocate a temporary array to hold the content of counter_arr
+! while it is reallocated:
+      allocate(counter_tmp_arr(ncount),stat=istat)
+      if (istat.ne.0) then
+        print *,"Error while allocating counter_tmp_arr..."
+        stop "add_counter_int"
+      end if
+! Copy everything:
+      counter_tmp_arr(1:ncount) = counter_arr(1:ncount)
+! Deallocate:
+      deallocate(counter_arr)
+! Allocate it again but with increased number of items:
+      allocate(counter_arr(ncount+1),stat=istat)
+      if (istat.ne.0) then
+        print *,"Error while allocating counter_arr..."
+        stop "add_counter_int"
+      end if
+! Copy previous content: 
+      counter_arr(1:ncount) = counter_tmp_arr(1:ncount)
+! Deallocate the temporary array:
+      deallocate(counter_tmp_arr)
+! If the counter array was never used before it only has to
+! be allocated once:
+    else
+      allocate(counter_arr(ncount+1),stat=istat)
+      if (istat.ne.0) then
+        print *,"Error while allocating counter_arr..."
+        stop "add_counter_int"
+      end if
+    end if
+! The dimension of counter_arr is extended, hence it can
+! accomodate the new counter:
+    ncount = ncount + 1
+    counter_arr(ncount)%title = trim(title)
+    counter_arr(ncount)%intcount = 0
+    counter_arr(ncount)%realcount = val
+! Otherwise simply increment the counter:
+  else
+    counter_arr(icount)%realcount = counter_arr(icount)%realcount + val
+  end if
+!
+end subroutine add_counter_real
+!
+! This routine prints out all the non-empty counters:
+subroutine print_counter(iun)
+implicit none
+!
+  integer , intent(in) :: iun
+!
+  integer :: icount
+!
+!
+  do icount=1,ncount
+    write(iun,fmt='(A)',advance='no') trim(counter_arr(icount)%title)//":"
+    if (counter_arr(icount)%intcount.ne.0) then
+      write(iun,fmt='(A,I0)',advance='no') " ",counter_arr(icount)%intcount
+    end if
+    if (counter_arr(icount)%realcount.ne.0) then
+      write(iun,fmt='(A,G0)',advance='no') " ",counter_arr(icount)%realcount
+    end if
+    write(iun,*)
+  end do
+!
+end subroutine print_counter
+!
+! This routine writes out all counters which are not empty:
+subroutine output_counter
+use process
+use random
+implicit none
+!
+!
+  integer :: filestat
+  integer , parameter :: iun = 21
+  character (len=72) :: fname
+!
+!
+  fname = trim(process_name)//'-counters'
+! If multiseed mode is active an additional number is needed to 
+! distinguish between different runs:
+  if (flg_manyseeds) then
+    write(fname,'(a,a,I0.4)') trim(fname),'-',iseed_manyseeds
+  end if
+! File extension:
+  fname = trim(fname)//'.dat'
+!
+  open(file=fname,unit=iun,status='unknown',iostat=filestat)
+  if (filestat.ne.0) then
+    print *,"Problem ocurred during creation of the counters output..."
+    stop
+  end if
+!
+  call print_counter(iun)
+!
+  close(iun)
+!
+end subroutine output_counter
+!
+end module counters
