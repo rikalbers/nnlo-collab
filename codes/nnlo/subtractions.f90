@@ -5331,6 +5331,7 @@ use coupling
 use phasespace
 use alphamax
 use misc
+use histo
 use nlo_subtractions
 use nnlo_subtractions
 use nlo_mom_maps
@@ -5343,13 +5344,13 @@ implicit none
   real(kind(1d0)) , dimension(:,:,:) , intent(out) :: Bijk
   real(kind(1d0)) , dimension(:,:,:,:) , intent(out) :: Bijkl
   real(kind(1d0)) , dimension(0:,0:,:,:) , intent(out) :: Bmunuij
-  real(kind(1d0)) , intent(in) :: weightPS
+  real(kind(1d0)) , intent(inout) :: weightPS
   type(subterms) , intent(in) :: Cir,Sr,CirSr
   real(kind(1d0)) , dimension(:) , intent(out) :: subsR
   real(kind(1d0)) , dimension(:) , intent(out) :: subsRV
   real(kind(1d0)) , dimension(:) , intent(out) :: subsRRA1
 !
-  integer :: iterm,jterm,iscale,icut
+  integer :: iterm,jterm,iscale,icut,inan
   real(kind(1d0)) :: fluxfact
   real(kind(1d0)) :: cfunc
   real(kind(1d0)) :: smeB,smeV
@@ -5440,6 +5441,15 @@ implicit none
 !
     end subroutine Cuts
 !
+    subroutine yminCut(p,icut)
+    use momenta
+    implicit none
+!
+      type(mom) , dimension(:) , intent(in) :: p
+      integer , intent(out) :: icut
+!
+    end subroutine yminCut
+!
     subroutine analysis(p,weights)
     use particles
     implicit none
@@ -5477,6 +5487,14 @@ implicit none
                        Cir%term(iterm)%rad(1)%ID,  &
                        Cir%term(iterm)%rad(2)%i,   &
                        Cir%term(iterm)%rad(2)%ID)
+! ymin and NaN tests:
+      call yminCut(ptilde(:)%p,icut)
+      call IsNaNmom(ptilde,inan)
+      if ((icut.eq.0).or.(inan.eq.0)) then
+        call drop_hist
+        weightPS = 0
+        return
+      end if
 ! alphamax cut:
       if (alphair.gt.alpha0) cycle
 ! Applying cuts, if any and cycle if not passing:
@@ -5625,6 +5643,14 @@ implicit none
     call MapMomSr(p,ptilde, &
                   Sr%term(iterm)%rad(1)%i, &
                   Sr%term(iterm)%rad(1)%ID)
+! ymin and NaN tests:
+    call yminCut(ptilde(:)%p,icut)
+    call IsNaNmom(ptilde,inan)
+    if ((icut.eq.0).or.(inan.eq.0)) then
+      call drop_hist
+      weightPS = 0
+      return
+    end if
 ! alphamax cut:
     if (yrQ.gt.y0) cycle
 ! Applying cuts, if any and cycle if not passing:

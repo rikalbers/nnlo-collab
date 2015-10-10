@@ -341,7 +341,8 @@ implicit none
   integer , parameter :: maxbin    = 100
 !
   integer , dimension(:) , allocatable :: numbins
-  integer , dimension(:,:) , allocatable :: nhits
+! Decided to drop the nhits array which is not effectively not used at all:
+!  integer , dimension(:,:) , allocatable :: nhits
   integer , dimension(:) , allocatable :: nevnts
   real(kind(1d0)) , dimension(:,:) , allocatable :: xhist
   real(kind(1d0)) , dimension(:,:,:) , allocatable :: & 
@@ -377,7 +378,7 @@ implicit none
 ! We allocate all the arrays needed to store the histos:
   allocate(numbins(maxhist),                        &
            nevnts(maxhist),                         &
-           nhits(0:maxbin+1,maxhist),               &
+!           nhits(0:maxbin+1,maxhist),               &
            xhist(maxbin+1,maxhist),                 &
            yhist(nweight,0:maxbin+1,maxhist),       &
            yhist_out(nweight,0:maxbin+1,maxhist),   &
@@ -392,7 +393,7 @@ implicit none
   end if
 !
 ! We nullify everything:
-  yhist = 0d0 ; yhist_out = 0d0 ; yhist_tmp = 0d0 ; nhits = 0
+  yhist = 0d0 ; yhist_out = 0d0 ; yhist_tmp = 0d0 ; !nhits = 0
   errhist = 0d0; errhist_out = 0d0 ; nevnts = 0d0
 !
 end subroutine init_hist
@@ -505,11 +506,11 @@ implicit none
 ! we can have an under or overflow:
 ! underflow:
   if (xpos.lt.xhist(1,ihist)) then
-    nhits(0,ihist) = nhits(0,ihist) + 1
+!    nhits(0,ihist) = nhits(0,ihist) + 1
     yhist_tmp(:,0,ihist) = yhist_tmp(:,0,ihist) + weights
 ! overflow:
   elseif (xpos.gt.xhist(numbins(ihist)+1,ihist)) then
-    nhits(numbins(ihist)+1,ihist) = nhits(numbins(ihist)+1,ihist) + 1
+!    nhits(numbins(ihist)+1,ihist) = nhits(numbins(ihist)+1,ihist) + 1
     yhist_tmp(:,numbins(ihist)+1,ihist) = &
       yhist_tmp(:,numbins(ihist)+1,ihist) + weights
 ! fill in an ordinary bin:
@@ -518,7 +519,7 @@ implicit none
     do ibin=1,numbins(ihist)
       if ((xhist(ibin,ihist).lt.xpos).and. &
           (xhist(ibin+1,ihist).gt.xpos)) then
-        nhits(ibin,ihist) = nhits(ibin,ihist) + 1
+!        nhits(ibin,ihist) = nhits(ibin,ihist) + 1
         yhist_tmp(:,ibin,ihist) = &
           yhist_tmp(:,ibin,ihist) &
           + weights/(xhist(ibin+1,ihist) - xhist(ibin,ihist))
@@ -548,6 +549,23 @@ implicit none
   end do
 !
 end subroutine accu_hist
+!
+! It can happen that the temporary histogram is started to fill
+! up but at a later point the PS point is decided to be dropped:
+subroutine drop_hist
+implicit none
+!
+!
+  integer :: ihist,ibin
+!
+!
+  do ihist=1,numhist
+    do ibin=0,numbins(ihist)+1
+      yhist_tmp(:,ibin,ihist) = 0d0
+    end do
+  end do
+!
+end subroutine drop_hist
 !
 subroutine store_hist
 use process
@@ -636,7 +654,7 @@ subroutine null_hist
 !
 !
   print *,"Nullifying the histos..."
-  yhist = 0d0 ; yhist_out = 0d0 ; yhist_tmp = 0d0 ; nhits = 0
+  yhist = 0d0 ; yhist_out = 0d0 ; yhist_tmp = 0d0 ; !nhits = 0
   errhist = 0d0; errhist_out = 0d0 ; nevnts = 0d0
 !
 !

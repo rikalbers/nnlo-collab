@@ -482,11 +482,21 @@ implicit none
   real(kind(1d0)) , intent(out) :: weight
 !
   integer :: jproc,ipart,jpart,npart
-  integer :: nfinst
+  integer :: nfinst,icut
   real(kind(1d0)) :: x1,x2
-  real(kind(1d0)) :: yij,y1,y2
   real(kind(1d0)) , dimension(4) :: p_tmp
   real(kind(1d0)) , dimension(0:3,-2:17) :: p_kaleu
+!
+  interface
+    subroutine yminCut(p,icut)
+    use momenta
+    implicit none
+!
+      type(mom) , dimension(:) , intent(in) :: p
+      integer , intent(out) :: icut
+!
+    end subroutine yminCut
+  end interface
 !
   if (cont.eq.'Bkin ') jproc = iproc
   if (cont.eq.'Rkin ') jproc = num_flv_ch_Bkin + iproc
@@ -522,38 +532,12 @@ implicit none
     return
   end if
 !
-! Extra technical cut is introduced:
-! Beside the NLO-style technical cut an NNLO-style one is
-! needed, too: that is the product of any yij pair cannot
-! be smaller than ymin:
-!  y1 = 1d99
-!  y2 = 1d99
-  do ipart=3,npart-1
-    do jpart=ipart+1,npart
-      yij = (p(ipart) + p(jpart))*(p(ipart) + p(jpart))/stot
-      yij = abs(yij)
-!      if (yij.lt.y1) then
-!        y2 = y1
-!        y1 = yij
-! When the product of the two smallest invariants is
-! less then ymin the PS point is rejected:
-!        if (y1*y2.lt.ymin) then
-!          weight = 0
-!          return
-!        end if
-!      elseif ((yij.gt.y1).and.(yij.lt.y2)) then
-!        y2 = yij
-!        if (y1*y2.lt.ymin) then
-!          weight = 0
-!          return
-!        end if
-!      end if
-      if (yij.lt.ymin) then
-        weight = 0
-        return
-      end if
-    end do
-  end do
+! Imposing a ymin cut:
+  call yminCut(p,icut)
+  if (icut.eq.0) then
+    weight = 0
+    return
+  end if
 !
 ! Otherwise we obtain the weight too and give it back:
   call multi_kaleu_wght(jproc,weight)
@@ -1194,3 +1178,31 @@ implicit none
 end subroutine PutWeight
 !
 end module phasespace
+!
+! This routine checks whether the momenta pass the ymin cut or not:
+subroutine yminCut(p,icut)
+use momenta
+use phasespace
+use collider
+implicit none
+!
+  type(mom) , dimension(:) , intent(in) :: p
+  integer , intent(out) :: icut
+!
+  integer :: ipart,jpart,npart
+  real(kind(1d0)) :: yij
+!
+!
+  icut = 0
+!
+  npart = size(p)
+  do ipart=3,npart-1
+    do jpart=ipart+1,npart
+      yij = abs((p(ipart) + p(jpart))*(p(ipart) + p(jpart))/stot)
+      if (yij.lt.ymin) return
+    end do
+  end do
+!
+  icut = 1
+!
+end subroutine yminCut

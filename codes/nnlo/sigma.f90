@@ -191,7 +191,7 @@ implicit none
       real(kind(1d0)) , dimension(:,:,:) , intent(out) :: Bijk
       real(kind(1d0)) , dimension(:,:,:,:) , intent(out) :: Bijkl
       real(kind(1d0)) , dimension(0:,0:,:,:) , intent(out) :: Bmunuij
-      real(kind(1d0)) , intent(in) :: weightPS
+      real(kind(1d0)) , intent(inout) :: weightPS
       type(subterms) , intent(in) :: Cir,Sr,CirSr
       real(kind(1d0)) , dimension(:) , intent(out) :: subsR
       real(kind(1d0)) , dimension(:) , intent(out) :: subsRV
@@ -331,18 +331,11 @@ implicit none
       call CreateParts(ps_R,flv_ch_Rkin(:,iproc),parts_R)
 ! We have to deal with all the others too:
       weightPS = weightPS * weights_Rkin(iproc)
-! Apply cuts on the PS point:
-      call Cuts(parts_R,cfunc)
-      if (cfunc.ne.0d0) then
-! Calculation of the Real part and the I operator:
-        call sigma_R_Is(parts_R,Rij_arr,weightPS, &
-                        dsigmaRi,dsigmaR_I1)
-        if (flg_NLO_R) dsigmaR = dsigmaR + dsigmaRi * cfunc
-!
-        call sigmaRV(parts_R,weightPS,dsigmaRVi)
-        if (flg_NNLO_RV) dsigmaRV = dsigmaRV &
-                                  + (dsigmaRVi + dsigmaR_I1) * cfunc
-      end if
+! Start with calculating the subtractions:
+! The reason behind this ordering is that it is possible that
+! the Real phase space passed the ymin cut but the underlying
+! Born one does not resulting in a veto on the PS point, hence
+! it is useless to calculate the Real and/or the Real-Virtual:
 !
 ! Master routine manages all the subtractions defined for
 ! m+1 partonic final states:
@@ -354,49 +347,50 @@ implicit none
                          subterms_Sr_R(iproc),                   &
                          subterms_CSir_R(iproc),                 &
                          subs_R,subs_RV,subs_RRA1)
+! R and RV is only calculated with the weight is nonzero:
+      if (weightPS.ne.0) then
+! Apply cuts on the PS point:
+        call Cuts(parts_R,cfunc)
+        if (cfunc.ne.0d0) then
+! Calculation of the Real part and the I operator:
+          call sigma_R_Is(parts_R,Rij_arr,weightPS, &
+                          dsigmaRi,dsigmaR_I1)
+          if (flg_NLO_R) dsigmaR = dsigmaR + dsigmaRi * cfunc
 !
-!      if (cfunc.ne.0) then
-!        minsij = 2*min(ps_R(3)*ps_R(5), &
-!                       ps_R(3)*ps_R(6), &
-!                       ps_R(4)*ps_R(5), &
-!                       ps_R(4)*ps_R(6), &
-!                       ps_R(5)*ps_R(6))
-!        if (minsij.lt.1d-4) then
-!          call PrintParts(parts_R)
-!          print *,"smin: ",minsij
-!          print *,"smeR: ",dsigmaRi(centscale)
-!          print *,"smeRV: ",dsigmaRVi(centscale)
-!          print *,"smeR_I1: ",dsigmaR_I1(centscale)
-!          print *,"subR: ",subs_R(centscale)
-!          print *,"subRV: ",subs_RV(centscale)
-!          print *,"subRRA1: ",subs_RRA1(centscale)
-!          print *,"ratio: ",subs_RV(centscale)/dsigmaRVi(centscale)
-!          print *,"ratio: ",subs_RRA1(centscale)/dsigmaR_I1(centscale)
-!          read(*,*)
-!        end if
-!      end if
+          call sigmaRV(parts_R,weightPS,dsigmaRVi)
+          if (flg_NNLO_RV) dsigmaRV = dsigmaRV &
+                                    + (dsigmaRVi + dsigmaR_I1) * cfunc
+        end if
 !
-      weight = (dsigmaRi(centscale)    &
-             +  dsigmaRVi(centscale)   &
-             +  dsigmaR_I1(centscale)) &
-             * cfunc                   &
-             -  subs_R(centscale)      &
-             -  subs_RV(centscale)     &
-             -  subs_RRA1(centscale)
+! Weight for the PS generator is constructed from R, RV and subtractions
+! R, RV and I_1^{(0)}\times R receives an additional weight coming from the
+! cut function:
+        weight = (dsigmaRi(centscale)    &
+               +  dsigmaRVi(centscale)   &
+               +  dsigmaR_I1(centscale)) &
+               * cfunc                   &
+               -  subs_R(centscale)      &
+               -  subs_RV(centscale)     &
+               -  subs_RRA1(centscale)
+!
+! Constructing entries for the statistics:
+        if (flg_NLO_R.and.flg_NLO_R_A1) dsigmaR = dsigmaR - subs_R
+        if (flg_NNLO_RV.and.flg_NNLO_RV_A1) dsigmaRV = dsigmaRV - subs_RV
+        if (flg_NNLO_RV.and.flg_NNLO_RRA1_A1) dsigmaRV = dsigmaRV - subs_RRA1
+!
+! If needed the analysis routine is called:
+        if (.not.flg_optim.and.flg_analysis.and.(weightPS.ne.0)) then 
+          call analysis(parts_R,dsigmaRi + dsigmaRVi + dsigmaR_I1)
+        end if
+! If the weight of the PS point became zero due to an underlying Born
+! PS point not passing the ymin cut the weight for the integrator should be
+! zero:
+      else
+        weight = 0
+      end if
 ! We have to give back a weight to the PS generator/integrator,
 ! we always choose the central scale choice:
       call PutWeight(iproc,cont,weight)
-!
-      if (flg_NLO_R.and.flg_NLO_R_A1) dsigmaR = dsigmaR - subs_R
-      if (flg_NNLO_RV.and.flg_NNLO_RV_A1) dsigmaRV = dsigmaRV - subs_RV
-      if (flg_NNLO_RV.and.flg_NNLO_RRA1_A1) dsigmaRV = dsigmaRV - subs_RRA1
-!
-! If needed the analysis routine is called:
-      if (.not.flg_optim.and.flg_analysis.and.(weightPS.ne.0)) then 
-        call analysis(parts_R,dsigmaRi + dsigmaRVi + dsigmaR_I1)
-      end if
-!
-!      print *,"weight: ",weight
 !
     end do
     if (flg_NLO_R) call accu_stat('R ',dsigmaR)

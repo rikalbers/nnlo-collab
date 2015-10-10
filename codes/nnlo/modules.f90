@@ -1562,6 +1562,11 @@ interface PrintInvariants
   module procedure PrintInvariants_parts
 end interface PrintInvariants
 !
+interface IsNaNmom
+  module procedure IsNaNmom_mom
+  module procedure IsNaNmom_part
+end interface IsNaNmom
+!
 contains
 !
 subroutine CreateParts_mom_arr(p_arr,flv_arr,parts)
@@ -1867,6 +1872,46 @@ implicit none
   pixpj = cross_pi_pj_mom_mom(pi%p,pj%p)
 !
 end function cross_pi_pj_part_part
+!
+! This routine checks an array of momenta for NaNs, if inan is
+! zero at least one NaN is found:
+subroutine IsNaNmom_mom(p,inan)
+use momenta
+implicit none
+!
+  type(mom) , dimension(:) , intent(in) :: p
+  integer , intent(out) :: inan
+!
+  integer ipart,npart
+!
+!
+  inan = 0
+!
+  npart = size(p)
+!
+  do ipart=1,npart
+    if ((p(ipart)%px.ne.p(ipart)%px).or. &
+        (p(ipart)%py.ne.p(ipart)%py).or. &
+        (p(ipart)%pz.ne.p(ipart)%pz).or. &
+        (p(ipart)%E.ne.p(ipart)%E)) return
+  end do
+!
+  inan = 1
+!
+end subroutine IsNaNmom_mom
+!
+subroutine IsNaNmom_part(p,inan)
+implicit none
+!
+  type(particle) , dimension(:) , intent(in) :: p
+  integer , intent(out) :: inan
+!
+!
+!
+!
+  call IsNaNmom_mom(p(:)%p,inan)
+!
+end subroutine IsNaNmom_part
 !
 end module particles
 !
