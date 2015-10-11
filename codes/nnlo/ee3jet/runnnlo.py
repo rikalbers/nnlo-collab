@@ -7,6 +7,7 @@ import multiprocessing
 import time
 import math
 import random
+import copy
 
 def GenSeeds():
   global proc
@@ -85,6 +86,7 @@ def RunCode():
 
 # This routine loads the histogram:
 def LoadHisto(datafile,histo):
+  global flg_weighted
   while True:
     line = datafile.readline()
 # If we hit the end of the file just quit:
@@ -109,8 +111,17 @@ def LoadHisto(datafile,histo):
 # in float:
     for iword in words:
       templine.append(float(iword))
-# The last item should be squared:
-    templine[3] = templine[3]**2
+# Simply storing the error as it is:
+    templine[3] = templine[3]
+# The last item contains the weight which can be one or the inverse of the
+# squared error depending upon flg_weighted:
+    if flg_weighted:
+      if templine[3] != 0:
+        templine.append(1.0/templine[3]**2)
+      else:
+	templine.append(0.0)
+    else:
+      templine.append(1.0)
 # we append the line to the histo:
     histo.append(templine)
   return title
@@ -124,11 +135,18 @@ def InitHistos(datafile,titles,temphistos):
     title = LoadHisto(datafile,temphisto)
     if title == '':
       break
-# We append this to temphistos:
-    temphistos.append(temphisto)
+# Creating a copy of temphisto:
+    histo_tmp = copy.deepcopy(temphisto)
 # We also store the name of the histo:
     titles.append(title)
     nhisto += 1
+# We nullify everything in histo_tmp except for bin positions:
+    for ibin,bin in enumerate(histo_tmp):
+      for ipos in range(2,5):
+        histo_tmp[ibin][ipos] = 0.0
+# Copy formated data to histo_tmp from temphisto and append it to
+# temphistos:
+    temphistos.append(CombineHistos(histo_tmp,temphisto))
   print "We loaded %d histograms from the first datafile" %(nhisto)
   return nhisto
 
@@ -141,13 +159,16 @@ def CombineHistos(hista,histb):
 # We can combine the bin contents provided by the fact that they
 # correspond to the same bin:
     if (bincontent[0] == histb[ibin][0]) and (bincontent[1] == histb[ibin][1]):
-      hista[ibin][2] += histb[ibin][2]
-#      hista[ibin][3] += histb[ibin][3]**2
-      hista[ibin][3] += histb[ibin][2]**2
+# We add wi*xi:
+      hista[ibin][2] += histb[ibin][2]*histb[ibin][4]
+# Storing wi*xi^2 needed for the error:
+      hista[ibin][3] += histb[ibin][2]**2*histb[ibin][4]
+# Sum of weights:
+      hista[ibin][4] += histb[ibin][4]
     else:
       print "We tried to combine bins, but they mismatch..."
       sys.exit()
-  return
+  return hista
 
 # This routine saves the histos with appropriate names to a file:
 def SaveHistos(proc,fname0,histos,titles):
@@ -196,6 +217,8 @@ def countweights(proc,fname0):
 
 # This routine reads in the datafiles and tries to collect statistics:
 def CollectData(proc):
+  global flg_modswitch
+  global flg_weighted
   proc = "%s-" %(proc)
   fname0 = 'output'
 # Before we count down the files we check whether we have multiple 
@@ -246,20 +269,26 @@ def CollectData(proc):
         else:
 # we go through all the histos in histodata and combine them with the
 # newly read in one:
-          for hista in histodata:
+          for ihisto,hista in enumerate(histodata):
     	    histb = []
 	    title = LoadHisto(datafile,histb)
 	    if title is not '':
-	      CombineHistos(hista,histb)
+	      histodata[ihisto] = CombineHistos(hista,histb)
 	    else:
 	      print "We tried to read in %s or %s, but failed" %(fname1,fname2)
         datafile.close()
 # Then we finalize the histograms:
     for ihisto in xrange(len(histodata)):
       for ibin in xrange(len(histodata[ihisto])):
-        histodata[ihisto][ibin][2] = histodata[ihisto][ibin][2]/nfiles
-#        histodata[ihisto][ibin][3] = math.sqrt(histodata[ihisto][ibin][3]/(nfiles-1))
-        histodata[ihisto][ibin][3] = math.sqrt(abs(histodata[ihisto][ibin][3]/(nfiles) - histodata[ihisto][ibin][2]**2))
+# <x> = 1/W \sum_i wi*xi:
+        if not flg_weighted or histodata[ihisto][ibin][4] != 0:
+          histodata[ihisto][ibin][2] = histodata[ihisto][ibin][2]/histodata[ihisto][ibin][4]
+# 1/(n-1)*(<x^2> - <x>^2):
+          histodata[ihisto][ibin][3] = math.sqrt(abs(histodata[ihisto][ibin][3]/histodata[ihisto][ibin][4] - \
+                                                     histodata[ihisto][ibin][2]**2)/(nfiles-1))
+	else:
+	  histodata[ihisto][ibin][2] = 0
+	  histodata[ihisto][ibin][3] = 0
 # Then, finally, we save the histograms to a file:
     if cmulti == '':
       SaveHistos(proc,fname0,histodata,titles)
@@ -401,6 +430,11 @@ if __name__ == '__main__':
     dt = time_finish - time_start
     print "The elapsed time is: %dh %dmin %ds" %(int(dt)/3600,(int(dt) % 3600) / 60,int(dt) % 60)
   if modswitch is 'H' or modswitch is 'h':
+    # We offer the possibility to have a weigted sum as well:
+    modswitch = eval('raw_input("Choose flat or weighted average (f/w): ")')
+    flg_weighted = False
+    if modswitch is 'w' or modswitch is 'W':
+      flg_weighted = True
     CollectData(proc)
   if modswitch is 'S' or modswitch is 's':
     CollectStat(proc)
