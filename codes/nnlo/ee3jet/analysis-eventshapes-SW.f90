@@ -26,8 +26,8 @@ implicit none
   integer :: ialgo
 !
 !
-! We have to initialize the histograms, we allow for 100 bins in each:
-  call init_hist(100)
+! We have to initialize the histograms, we allow for 20 histos:
+  call init_hist(20)
 !
 ! 1 - Thrust:
   call bookup_hist("1-T",0.01d0,0d0,0.45d0)

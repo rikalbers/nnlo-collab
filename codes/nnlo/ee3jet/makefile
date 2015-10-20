@@ -1,4 +1,5 @@
 COMPILER = ifort
+#COMPILER = gfortran
 
 ANALYSIS=-eventshapes-SW
 
@@ -77,10 +78,9 @@ USER =  contb.o contr.o contv.o contvv.o contrr.o contrv.o init_processes.o \
 	cuts.o \
 	kaleu-ps.o \
 	rambo-ps.o \
-	fastjetfortran.o \
 	iopee3jet.o \
 	iopuser.o \
-	$(OBJF77) $(FJCORE)
+	$(OBJF77)#fastjetfortran.o $(FJCORE)
 
 NNLO = $(MODULES) main.o genprocesses.o boost.o \
        reshuffle.o debug.o random.o regions.o sigma.o alpha.o \
@@ -101,6 +101,7 @@ nnlo : $(NNLO)
 	$(CPP) -c -o obj/$@ $<
 
 kaleu:
+	rm -f $(PWD)/../$(KALEUVER)/*.a
 	cp $(KALEU) $(PWD)/../$(KALEUVER)/.
 	cd $(KALEUDIR) ; export FC='$(FC)' ; export USERDIR=$(PWD); export OPT='$(OPT)'; export DEBUG='$(DEBUG)'; make -f makefile_nnlo ; cd -
 

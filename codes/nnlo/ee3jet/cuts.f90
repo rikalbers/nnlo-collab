@@ -78,7 +78,7 @@ implicit none
   type(particle) , dimension(:) , intent(in) :: p
   real(kind(1d0)) , intent(out) :: cfunc
 !
-  real(kind(1d0)) :: Cpar,Dpar,S,EEC,T
+  real(kind(1d0)) :: Cpar,Dpar,EEC,T
 !
 !
   cfunc = 0d0
@@ -86,9 +86,6 @@ implicit none
 ! ###################### Place function here: #########################
 !  call CDpars(p,5,Cpar,Dpar)
 !  cfunc = Cpar
-!
-!  call Sphericity(p,5,S)
-!  cfunc = S
 !
 !  EEC = CalcEEC(0,0,5,p)
 !  cfunc = EEC
