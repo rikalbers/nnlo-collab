@@ -310,7 +310,7 @@ implicit none
   common/dotproducts/S &
         /spinorproducts/A,B
 !
-  real(kind(1d0)) , external :: PSI2d1gBorn,PSI2u1gBorn
+  real(kind(1d0)) , external :: PSI2dBorn,PSI2uBorn
 !
 ! We initialize the QCD and COUPLINGS blocks for each and every
 ! contribution, safety first...
@@ -353,30 +353,26 @@ implicit none
 !
   Bij = 0d0
 !
+! 3q 4qb 5g
   Bij(3,3) = qcd_cf
   Bij(4,4) = qcd_cf
-  Bij(5,5) = qcd_ca
-  Bij(3,4) = 0.5d0*(Bij(5,5) - Bij(3,3) - Bij(4,4))
-  Bij(3,5) = 0.5d0*(Bij(4,4) - Bij(3,3) - Bij(5,5))
-  Bij(4,5) = 0.5d0*(Bij(3,3) - Bij(4,4) - Bij(5,5))
+  Bij(3,4) = -qcd_cf
   Bij(4,3) = Bij(3,4)
-  Bij(5,3) = Bij(3,5)
-  Bij(5,4) = Bij(4,5)
 !
 ! Note that the position of the quark and the antiquark is interchanged.
-! To get agreement with HELAC we had to change the ordering from 1,2,3,7,8
-! to 1,3,2,8,7.
-! The ordering among momenta: q,qb,g,e+,e-
+! To get agreement with HELAC we had to change the ordering from 1,2,7,8
+! to 1,2,8,7.
+! The ordering among momenta: q,qb,e+,e-
 ! The variable called iptrn determines which contribution we should 
 ! calculate:
-! e+ e- -> d d~ g
+! e+ e- -> d d~
   if (iptrn.eq.1) then
-    Born = PSI2d1gBorn(1,3,2,8,7)
+    Born = PSI2dBorn(1,2,8,7)
     Bij  = Bij * Born
     return
-! e+ e- -> u u~ g
+! e+ e- -> u u~
   elseif (iptrn.eq.2) then
-    Born = PSI2u1gBorn(1,3,2,8,7)
+    Born = PSI2uBorn(1,2,8,7)
     Bij  = Bij * Born
     return
   end if
@@ -972,29 +968,7 @@ implicit none
   real(kind(1d0)) , dimension(-4:2) :: Laurent
   type(mom) :: Q
 !
-!
-  Q = p(1)%p + p(2)%p
-!
-  Q2 = Q**2
-!
-  y12 = 2*p(3)%p*p(4)%p/Q2
-  y13 = 2*p(3)%p*p(5)%p/Q2
-  y23 = 2*p(4)%p*p(5)%p/Q2
-!
-  Born = 8*qcd_nc*qcd_cf*(y13/y23+y23/y13+2*y12/(y13*y23))
-  if (present(BornLaurent)) then
-    BornLaurent = 0
-    BornLaurent(0) = Born
-    BornLaurent(1) = -16*qcd_nc*qcd_cf*(y13/y23+y23/y13+y12/(y13*y23)+1)
-    BornLaurent(2) = 8*qcd_nc*qcd_cf*(y13/y23+y23/y13+2)
-    BornLaurent = BornLaurent/Q2/27d0
-! Pattern 1 is for d d~ g and pattern 2 is for u u~ g:
-    if (iptrn.eq.2) BornLaurent = 4*BornLaurent
-  end if
-! Including e_q^2/3, The factor of 1/3 is coming from 1/(d-1):
-  Born = Born/Q2/27d0
-! Pattern 1 is for d d~ g and pattern 2 is for u u~ g:
-  if (iptrn.eq.2) Born = 4*Born
+  Born = 1d0
 !
 end subroutine BornSMEddim
 !
@@ -1029,27 +1003,10 @@ implicit none
     end subroutine BornSMEddim
   end interface
 !
-  Bij = 0d0
-!
-  Bij(3,3) = qcd_cf
-  Bij(4,4) = qcd_cf
-  Bij(5,5) = qcd_ca
-  Bij(3,4) = 0.5d0*(Bij(5,5) - Bij(3,3) - Bij(4,4))
-  Bij(3,5) = 0.5d0*(Bij(4,4) - Bij(3,3) - Bij(5,5))
-  Bij(4,5) = 0.5d0*(Bij(3,3) - Bij(4,4) - Bij(5,5))
-  Bij(4,3) = Bij(3,4)
-  Bij(5,3) = Bij(3,5)
-  Bij(5,4) = Bij(4,5)
+  Bij = 1d0
 !
   if (present(BijLaurent)) then
-    call BornSMEddim(iptrn,p,Born,BornLaurent)
-    do i=-4,2
-      BijLaurent(:,:,i) = Bij*BornLaurent(i)
-    end do
-    Bij = Bij*Born
-  else
-    call BornSMEddim(iptrn,p,Born)
-    Bij = Bij*Born
+    BijLaurent = 1d0
   end if
 !
 end subroutine BijSMEddim
@@ -1085,94 +1042,10 @@ implicit none
     end subroutine BornSMEddim
   end interface
 !
-  Bijkl = 0d0
-!
-! no. 5 particle is the gluon:
-! Filling up (TiTi)(TiTi):
-  do ipart=3,5
-    if (ipart.ne.5) Bijkl(ipart,ipart,ipart,ipart) = qcd_cf**2
-    if (ipart.eq.5) Bijkl(ipart,ipart,ipart,ipart) = qcd_ca**2
-!    print *,"(TiTi)(TiTi): ",ipart
-  end do
-! Filling up (TiTi)(TjTj) , i != j:
-  do ipart=3,4
-    do jpart=ipart+1,5
-      if (jpart.ne.5) Bijkl(ipart,ipart,jpart,jpart) = qcd_cf**2
-      if (jpart.eq.5) Bijkl(ipart,ipart,jpart,jpart) = qcd_cf*qcd_ca
-      Bijkl(jpart,jpart,ipart,ipart) = Bijkl(ipart,ipart,jpart,jpart)
-!    print *,"(TiTi)(TjTj): ",ipart,jpart
-    end do
-  end do
-! Filling up (TiTi)(TjTk):
-  do ipart=3,5
-    do jpart=3,4
-      do kpart=jpart+1,5
-        if (ipart.ne.5) Bijkl(ipart,ipart,jpart,kpart) = qcd_cf
-        if (ipart.eq.5) Bijkl(ipart,ipart,jpart,kpart) = qcd_ca
-        if (kpart.ne.5) then
-          Bijkl(ipart,ipart,jpart,kpart) = Bijkl(ipart,ipart,jpart,kpart) &
-                                         * 0.5d0*(qcd_ca - 2*qcd_cf)
-        else
-          Bijkl(ipart,ipart,jpart,kpart) = Bijkl(ipart,ipart,jpart,kpart) &
-                                         * (-0.5d0*qcd_ca)
-        end if
-        Bijkl(ipart,ipart,kpart,jpart) = Bijkl(ipart,ipart,jpart,kpart)
-        Bijkl(jpart,kpart,ipart,ipart) = Bijkl(ipart,ipart,jpart,kpart)
-        Bijkl(kpart,jpart,ipart,ipart) = Bijkl(ipart,ipart,jpart,kpart)
-      end do
-!    print *,"(TiTi)(TjTk): ",ipart,jpart,kpart
-    end do
-  end do
-! Filling up (TiTj)(TiTj) , i != j:
-  do ipart=3,4
-    do jpart=ipart+1,5
-      if (jpart.ne.5) Bijkl(ipart,jpart,ipart,jpart) = 0.25d0/qcd_nc**2
-      if (jpart.eq.5) Bijkl(ipart,jpart,ipart,jpart) = 0.25d0*qcd_nc**2
-      Bijkl(jpart,ipart,ipart,jpart) = Bijkl(ipart,jpart,ipart,jpart)
-      Bijkl(ipart,jpart,jpart,ipart) = Bijkl(ipart,jpart,ipart,jpart)
-      Bijkl(jpart,ipart,jpart,ipart) = Bijkl(ipart,jpart,ipart,jpart)
-!    print *,"(TiTj)(TiTj): ",ipart,jpart
-    end do
-  end do
-! Filling up (TiTj)(TiTk) , i != j , i != k:
-  do i=1,3
-    ipart=i+2 ; jpart = mod(i,3)+3 ; kpart = mod(i+1,3)+3
-!    print *,"(TiTj)(TiTk): ",ipart,jpart,kpart
-! (TiTj)(TiTk)
-    if (((ipart+jpart).eq.7).or.((ipart+kpart).eq.7)) then
-! The configuration is (T1T2)(T1T3) or (T2T3)(T2T1)
-      Bijkl(ipart,jpart,ipart,kpart) = -0.25d0
-    else 
-! The configuration is (T3T1)(T3T2)
-      Bijkl(ipart,jpart,ipart,kpart) = 0.25d0*qcd_nc**2
-    end if
-! (TjTi)(TiTk)
-    Bijkl(jpart,ipart,ipart,kpart) = Bijkl(ipart,jpart,ipart,kpart)
-! (TiTj)(TkTi)
-    Bijkl(ipart,jpart,kpart,ipart) = Bijkl(ipart,jpart,ipart,kpart)
-! (TjTi)(TkTi)
-    Bijkl(jpart,ipart,kpart,ipart) = Bijkl(ipart,jpart,ipart,kpart)
-! (TiTk)(TiTj)
-    Bijkl(ipart,kpart,ipart,jpart) = Bijkl(ipart,jpart,ipart,kpart)
-! (TkTi)(TiTj)
-    Bijkl(kpart,ipart,ipart,jpart) = Bijkl(ipart,jpart,ipart,kpart)
-! (TiTk)(TjTi)
-    Bijkl(ipart,kpart,jpart,ipart) = Bijkl(ipart,jpart,ipart,kpart)
-! (TkTi)(TjTi)
-    Bijkl(kpart,ipart,jpart,ipart) = Bijkl(ipart,jpart,ipart,kpart)
-  end do
-!
-  Bijkl = 2d0*Bijkl
+  Bijkl = 1d0
 !
   if (present(BijklLaurent)) then
-    call BornSMEddim(iptrn,p,Born,BornLaurent)
-    do i=-4,2
-      BijklLaurent(:,:,:,:,i) = Bijkl*BornLaurent(i)
-    end do
-    Bijkl = Bijkl*Born
-  else
-    call BornSMEddim(iptrn,p,Born)
-    Bijkl = Bijkl*Born
+    BijklLaurent(:,:,:,:,i) = 1d0
   end if
 !
 end subroutine BijklSMEddim

@@ -36,7 +36,7 @@ implicit none
 !
 ! We have to allocate the array which will hold the patterns
 ! and we have to fill these arrays up too:
-! For e+ e- -> q q~ g we have only two subprocesses:
+! For e+ e- -> q q~ we have only two subprocesses:
   numptrns = 2
 !
   allocate(ptrns(nleg_born,numptrns),stat=istat)
@@ -56,12 +56,12 @@ implicit none
 ! The first massless quark flavor starts with 1 and if the 
 ! next is different than it is 2 otherwise 1:
 !
-! e+ e- -> d d~ g
-  ptrns(1,1) = -11 ; ptrns(2,1) = 11 ; ptrns(3,1) =  1
-  ptrns(4,1) =  -1 ; ptrns(5,1) =  0
-! e+ e- -> u u~ g
-  ptrns(1,2) = -11 ; ptrns(2,2) = 11 ; ptrns(3,2) =  2
-  ptrns(4,2) =  -2 ; ptrns(5,2) =  0
+! e+ e- -> d d~
+  ptrns(1,1) = -11 ; ptrns(2,1) = 11
+  ptrns(3,1) =  1 ; ptrns(4,1) =  -1
+! e+ e- -> u u~
+  ptrns(1,2) = -11 ; ptrns(2,2) = 11
+  ptrns(3,2) =  2 ; ptrns(4,2) =  -2
 !
   prefacts = 1d0
 !
@@ -166,7 +166,7 @@ implicit none
 ! c_Gamma:
     Virt = Virt * cGamma
 ! We factor out a tower of \alpha_S and \alpha_{EM}:
-    Virt = Virt * (4d0*pi)**4
+    Virt = Virt * (4d0*pi)**3
 ! For debugging purposes it is possible that the full Laurent series
 ! is needed for the virtual if this is the case we simply calculate
 ! everything:
@@ -174,8 +174,8 @@ implicit none
       call VirtSME(iptrn,pvirt,mur,'f',Virt,Virt_dep,Virt_indep,VirtLaurent)
       Virt = Virt * cGamma
       VirtLaurent = VirtLaurent * cGamma
-      Virt = Virt * (4d0*pi)**4
-      VirtLaurent = VirtLaurent * (4d0*pi)**4
+      Virt = Virt * (4d0*pi)**3
+      VirtLaurent = VirtLaurent * (4d0*pi)**3
     end if
     return
   end if
@@ -206,9 +206,10 @@ implicit none
   if (present(VirtLaurent)) VirtLaurent = VirtLaurent * cGamma
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Virt = Virt * (4d0*pi)**4
-  if (present(VirtLaurent)) VirtLaurent = VirtLaurent * (4d0*pi)**4
+  Virt = Virt * (4d0*pi)**3
+  if (present(VirtLaurent)) VirtLaurent = VirtLaurent * (4d0*pi)**3
 !
+!  print *,"Virt: ",Virt
 end subroutine CalcV
 !
 subroutine CalcVmunu(ileg,parts,Vmunu,VmunuLaurent)
@@ -281,7 +282,7 @@ implicit none
 ! c_Gamma:
     Vmunu = Vmunu * cGamma
 ! We factor out a tower of \alpha_S and \alpha_{EM}:
-    Vmunu = Vmunu * (4d0*pi)**4
+    Vmunu = Vmunu * (4d0*pi)**3
 ! If the Laurent expansion is also needed we simply calculate the full 
 ! contribution along with the Laruent expansion, since it is only used
 ! in the testing phase not in production code:
@@ -291,8 +292,8 @@ implicit none
 ! Vmunu has to be normalized again, since it is calculated again:
       Vmunu = Vmunu * cGamma
       VmunuLaurent = VmunuLaurent * cGamma
-      Vmunu = Vmunu * (4d0*pi)**4
-      VmunuLaurent = VmunuLaurent * (4d0*pi)**4
+      Vmunu = Vmunu * (4d0*pi)**3
+      VmunuLaurent = VmunuLaurent * (4d0*pi)**3
     end if
     return
   end if
@@ -345,8 +346,8 @@ implicit none
   if (present(VmunuLaurent)) VmunuLaurent = VmunuLaurent * cGamma
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Vmunu = Vmunu * (4d0*pi)**4
-  if (present(VmunuLaurent)) VmunuLaurent = VmunuLaurent * (4d0*pi)**4
+  Vmunu = Vmunu * (4d0*pi)**3
+  if (present(VmunuLaurent)) VmunuLaurent = VmunuLaurent * (4d0*pi)**3
 !
 end subroutine CalcVmunu
 !
@@ -415,13 +416,13 @@ implicit none
 ! c_Gamma:
     Vij = Vij * cGamma
 ! We factor out a tower of \alpha_S and \alpha_{EM}:
-    Vij = Vij * (4d0*pi)**4
+    Vij = Vij * (4d0*pi)**3
     if (present(VijLaurent)) then
       call VijSME(iptrn,pvirt,mur,'f',Vij,Vij_mudep,Vij_muindep,VijLaurent)
       Vij = Vij * cGamma
       VijLaurent = VijLaurent * cGamma
-      Vij = Vij * (4d0*pi)**4
-      VijLaurent = VijLaurent * (4d0*pi)**4
+      Vij = Vij * (4d0*pi)**3
+      VijLaurent = VijLaurent * (4d0*pi)**3
     end if
     return
   end if
@@ -448,8 +449,8 @@ implicit none
   if (present(VijLaurent)) VijLaurent = VijLaurent * cGamma
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Vij = Vij * (4d0*pi)**4
-  if (present(VijLaurent)) VijLaurent = VijLaurent * (4d0*pi)**4
+  Vij = Vij * (4d0*pi)**3
+  if (present(VijLaurent)) VijLaurent = VijLaurent * (4d0*pi)**3
 !
 end subroutine CalcVij
 !
@@ -503,66 +504,10 @@ implicit none
   end interface
 !
 !
-  Virt = 0d0
-!
-! If flg_scaledep is true we are having the same PS point with the
-! same flavor configuration hence we only have to reevaluate the mu
-! dependent term only:
-  if (flg_scaledep) then
-! pvirt is declared inside the module hence still usable, the 
-! pattern number is also saved:
-    iptrn = iptrn_saved
-    call VirtSMEddim(iptrn,pvirt,mur,'d',Virt,Virt_dep,Virt_indep)
-! The total virtual is built up from the dependent and independent
-! terms:
-    Virt = V_muindep_saved + Virt_dep
-! Normalization factors:
-! c_Gamma:
-    Virt = Virt * cGamma
-! We factor out a tower of \alpha_S and \alpha_{EM}:
-    Virt = Virt * (4d0*pi)**4
-! For debugging purposes it is possible that the full Laurent series
-! is needed for the virtual if this is the case we simply calculate
-! everything:
-! FIXME this part should be optimized as well!!!!
-    if (present(VirtLaurent)) then
-      call VirtSMEddim(iptrn,pvirt,mur,'f',Virt,Virt_dep,Virt_indep,VirtLaurent)
-      Virt = Virt * cGamma
-      VirtLaurent = VirtLaurent * cGamma
-      Virt = Virt * (4d0*pi)**4
-      VirtLaurent = VirtLaurent * (4d0*pi)**4
-    end if
-    return
-  end if
-!
-! We have to find the correct pattern corresponding to parts:
-!  call PrintParts(parts)
-  call reshufflemomud(nleg_born,parts,pvirt,numptrns,ptrns,iptrn,prefact)
-!  call PrintParts(pvirt)
-!
-! For the virtual part we also have to supply the renormalization scale to the
-! routine responsible for calculating the SME:
+  Virt = 1d0
   if (present(VirtLaurent)) then
-    call VirtSMEddim(iptrn,pvirt,mur,'f',Virt,Virt_dep,Virt_indep,VirtLaurent)
-  else
-! If we have a new PS point we reevaluate the whole virtual part,
-! that is the mu dependent and independent part as well:
-    if (.not.flg_scaledep) then
-      call VirtSMEddim(iptrn,pvirt,mur,'b',Virt,Virt_dep,Virt_indep)
-! We stash away the independent part:
-      V_muindep_saved = Virt_indep
-! We also stash away the pattern used:
-      iptrn_saved = iptrn
-    end if
+    VirtLaurent = 1d0
   end if
-!
-! Normalization coming from c_Gamma:
-  Virt = Virt * cGamma
-  if (present(VirtLaurent)) VirtLaurent = VirtLaurent * cGamma
-!
-! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Virt = Virt * (4d0*pi)**4
-  if (present(VirtLaurent)) VirtLaurent = VirtLaurent * (4d0*pi)**4
 !
 end subroutine CalcVddim
 !
@@ -631,13 +576,13 @@ implicit none
 ! c_Gamma:
     Vij = Vij * cGamma
 ! We factor out a tower of \alpha_S and \alpha_{EM}:
-    Vij = Vij * (4d0*pi)**4
+    Vij = Vij * (4d0*pi)**3
     if (present(VijLaurent)) then
       call VijSMEddim(iptrn,pvirt,mur,'f',Vij,Vij_mudep,Vij_muindep,VijLaurent)
       Vij = Vij * cGamma
       VijLaurent = VijLaurent * cGamma
-      Vij = Vij * (4d0*pi)**4
-      VijLaurent = VijLaurent * (4d0*pi)**4
+      Vij = Vij * (4d0*pi)**3
+      VijLaurent = VijLaurent * (4d0*pi)**3
     end if
     return
   end if
@@ -664,8 +609,8 @@ implicit none
   if (present(VijLaurent)) VijLaurent = VijLaurent * cGamma
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Vij = Vij * (4d0*pi)**4
-  if (present(VijLaurent)) VijLaurent = VijLaurent * (4d0*pi)**4
+  Vij = Vij * (4d0*pi)**3
+  if (present(VijLaurent)) VijLaurent = VijLaurent * (4d0*pi)**3
 !
 end subroutine CalcVijddim
 !
@@ -750,13 +695,13 @@ implicit none
 ! c_Gamma:
     Vij = Vij * cGamma
 ! We factor out a tower of \alpha_S and \alpha_{EM}:
-    Vij = Vij * (4d0*pi)**4
+    Vij = Vij * (4d0*pi)**3
 ! For debugging purposes it is possible that the full Laurent series
 ! is needed for the virtual if this is the case we simply calculate
 ! everything:
     if (present(VijLaurent)) then
       VijLaurent = MijLaurent_tmp * cGamma
-      VijLaurent = VijLaurent * (4d0*pi)**4
+      VijLaurent = VijLaurent * (4d0*pi)**3
     end if
     return
   end if
@@ -774,12 +719,12 @@ implicit none
 !
   Vij = VijLaurentAtMuRef(:,:,0)
   Vij = Vij * cGamma
-  Vij = Vij * (4d0*pi)**4
+  Vij = Vij * (4d0*pi)**3
 !
   if (present(VijLaurent)) then
     VijLaurent = VijLaurentAtMuRef
     VijLaurent = VijLaurent * cGamma
-    VijLaurent = VijLaurent * (4d0*pi)**4
+    VijLaurent = VijLaurent * (4d0*pi)**3
   end if
 !
 end subroutine CalcVijddim_new
@@ -865,13 +810,13 @@ implicit none
 ! c_Gamma:
     Virt = Virt * cGamma
 ! We factor out a tower of \alpha_S and \alpha_{EM}:
-    Virt = Virt * (4d0*pi)**4
+    Virt = Virt * (4d0*pi)**3
 ! For debugging purposes it is possible that the full Laurent series
 ! is needed for the virtual if this is the case we simply calculate
 ! everything:
     if (present(VirtLaurent)) then
       VirtLaurent = Laurent_tmp * cGamma
-      VirtLaurent = VirtLaurent * (4d0*pi)**4
+      VirtLaurent = VirtLaurent * (4d0*pi)**3
     end if
     return
   end if
@@ -889,10 +834,10 @@ implicit none
 !
   Virt = VirtLaurentAtMuRef(0)
   Virt = Virt * cGamma
-  Virt = Virt * (4d0*pi)**4
+  Virt = Virt * (4d0*pi)**3
 !
   if (present(VirtLaurent)) then
-    VirtLaurent = VirtLaurentAtMuRef * cGamma * (4d0*pi)**4
+    VirtLaurent = VirtLaurentAtMuRef * cGamma * (4d0*pi)**3
   end if
 !
 end subroutine CalcVddim_new

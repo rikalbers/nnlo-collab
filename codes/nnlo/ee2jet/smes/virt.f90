@@ -42,12 +42,15 @@ implicit none
         /scales/ COMU &
         /qsquared/ Q2
 !
-  real(kind(1d0)) , external :: PSI2d1gBorn,PSI2u1gBorn, &
-                                PSI2d1gVirtNLO,PSI2u1gVirtNLO, &
-                                PSI2d1gVirtNLOem2,PSI2d1gVirtNLOem1, &
-                                PSI2u1gVirtNLOem2,PSI2u1gVirtNLOem1, &
-                                PSI2d1gVirtNLOmudep,PSI2d1gVirtNLOmuindep, &
-                                PSI2u1gVirtNLOmudep,PSI2u1gVirtNLOmuindep
+  real(kind(1d0)) , external :: PSI2dBorn,PSI2uBorn, &
+                                PSI2dVirtNLO, PSI2uVirtNLO, &
+                                PSI2qVirtNLO, &
+                                PSI2qVirtNLOmudep,PSI2qVirtNLOmuindep, &
+                                PSI2qVirtNLOem2,PSI2qVirtNLOem1
+!                                PSI2dVirtNLOem2,PSI2dVirtNLOem1, &
+!                                PSI2uVirtNLOem2,PSI2uVirtNLOem1, &
+!                                PSI2dVirtNLOmudep,PSI2dVirtNLOmuindep, &
+!                                PSI2uVirtNLOmudep,PSI2uVirtNLOmuindep
 !
 ! We initialize the QCD and COUPLINGS blocks for each and every
 ! contribution, safety first...
@@ -97,91 +100,71 @@ implicit none
   Virt_indep = 0d0
   Virt_dep   = 0d0
   if (present(VirtLaurent)) VirtLaurent = 0d0
-!
-! Note that the position of the quark and the antiquark is interchanged.
-! To get agreement with HELAC we had to change the ordering from 1,2,3,7,8
-! to 1,3,2,8,7.
-! The ordering among momenta: q,qb,g,e+,e-
-! The variable called iptrn determines which contribution we should 
+! We change the ordering, from ee3jet:
+!! Note that the position of the quark and the antiquark is interchanged.
+!! To get agreement with HELAC we had to change the ordering from 1,2,3,7,8
+!! to 1,3,2,8,7.
+!! The ordering among momenta: q,qb,g,e+,e-
+! The variable called iptrn determines which contribution we should
 ! calculate:
-! e+ e- -> d d~ g
+! e+ e- -> d d~
   if (iptrn.eq.1) then
-!    print *,"e+ e- -> d d~ g"
-! The Born part is needed because of renormalization, it is always 
+!    print *,"e+ e- -> d d~"
+! The Born part is needed because of renormalization, it is always
 ! calculated but when the dependent part is needed:
     if ((mode.eq.'f').or.(mode.eq.'i').or.(mode.eq.'b')) then
-      Born = PSI2d1gBorn(1,3,2,8,7)
+      Born = PSI2dBorn(1,2,8,7)
     end if
-! The full virtual part is only calculated if it is explicitly needed
-    if (mode.eq.'f') then
-      Virt = PSI2d1gVirtNLO(1,3,2,8,7)
-      Virt = Virt - (2d0*(qcd_cf)-0d0*4d0*qcd_ca/6d0)*Born
+! The full virtual part is calculated
+    if ((mode.eq.'f').or.(mode.eq.'b')) then
+      Virt = PSI2qVirtNLO(1,2,8,7)
+      Virt = (Virt - 8d0)*qcd_cf*Born
     end if
-! The mu independent part is calculated if it is asked for or both
-! contributions are needed:
-    if ((mode.eq.'i').or.(mode.eq.'b')) then
-      Virt_indep = PSI2d1gVirtNLOmuindep(1,3,2,8,7)
+! The mu independent part is calculated if it is asked for:
+    if (mode.eq.'i') then
+      Virt_indep = PSI2qVirtNLOmuindep(1,2,8,7)
 ! We sweep the renormalization into the independent part:
-      Virt_indep = Virt_indep - (2d0*(qcd_cf)-0d0*4d0*qcd_ca/6d0)*Born
+      Virt_indep = (Virt_indep - 8d0)*qcd_cf*Born
     end if
-    if ((mode.eq.'d').or.(mode.eq.'b')) then
-      Virt_dep = PSI2d1gVirtNLOmudep(1,3,2,8,7)
+    if (mode.eq.'d') then
+      Virt_dep = PSI2qVirtNLOmudep(1,2,8,7)
+      Virt_dep = Virt_dep*qcd_cf*Born
     end if
-! We construct the total virtual part out of the two contributions:
-    if (mode.eq.'b') Virt = Virt_dep + Virt_indep
+! Is the full virtual equal to indep + dep?
+    if (mode.eq.'b') Virt = Virt
 ! If the VirtLaurent variable is present in the argument we give back
-! the Laurent series of the virtual part not just the finite piece:
+! the Laurent series of the virtual part, not just the finite piece:
     if (present(VirtLaurent)) then
       VirtLaurent = 0d0
-      VirtLaurent(-2) = PSI2d1gVirtNLOem2(1,3,2,8,7)
-      VirtLaurent(-1) = PSI2d1gVirtNLOem1(1,3,2,8,7) &
-                      - qcd_beta0*Born
+      VirtLaurent(-2) = PSI2qVirtNLOem2(1,2,8,7)*qcd_cf*Born
+      VirtLaurent(-1) = PSI2qVirtNLOem1(1,2,8,7)*qcd_cf*Born &
+                        - qcd_beta0*Born
     end if
-    return
-! e+ e- -> u u~ g
-  elseif (iptrn.eq.2) then
-!    print *,"e+ e- -> u u~ g"
-! The Born part is needed because of renormalization, it is always 
-! calculated but when the dependent part is needed:
-    if ((mode.eq.'f').or.(mode.eq.'i').or.(mode.eq.'b')) then
-      Born = PSI2u1gBorn(1,3,2,8,7)
-    end if
-! The full virtual part is only calculated if it is explicitly needed
-    if (mode.eq.'f') then
-      Virt = PSI2u1gVirtNLO(1,3,2,8,7)
-      Virt = Virt - (2d0*(qcd_cf)-0d0*4d0*qcd_ca/6d0)*Born
-    end if
-! The mu independent part is calculated if it is asked for or both
-! contributions are needed:
-    if ((mode.eq.'i').or.(mode.eq.'b')) then
-      Virt_indep = PSI2u1gVirtNLOmuindep(1,3,2,8,7)
-! We sweep the renormalization into the independent part:
-      Virt_indep = Virt_indep - (2d0*(qcd_cf)-0d0*4d0*qcd_ca/6d0)*Born
-    end if
-    if ((mode.eq.'d').or.(mode.eq.'b')) then
-      Virt_dep = PSI2u1gVirtNLOmudep(1,3,2,8,7)
-    end if
-! We construct the total virtual part out of the two contributions:
-    if (mode.eq.'b') Virt = Virt_dep + Virt_indep
-! If the VirtLaurent variable is present in the argument we give back
-! the Laurent series of the virtual part not just the finite piece:
-    if (present(VirtLaurent)) then
-      VirtLaurent = 0d0
-      VirtLaurent(-2) = PSI2u1gVirtNLOem2(1,3,2,8,7)
-      VirtLaurent(-1) = PSI2u1gVirtNLOem1(1,3,2,8,7) &
-                      - qcd_beta0*Born
-    end if
-!    do ipart=1,5
-!      print *,pin(ipart)%p
+!    do ipart=1,4
+!     print *,pin(ipart)%p
 !    end do
 !    print *,"virt: ",virt
-!    print *,"virtem2: ",PSI2u1gVirtNLOem2(1,3,2,8,7)
-!    print *,"virtem1: ",PSI2u1gVirtNLOem1(1,3,2,8,7) &
-!                      - qcd_beta0*Born
 !    print *,"born: ",born
 !    print *,"Q: ",sqrt(Q2)
 !    print *,"mur: ",mur
 !    stop "VirtSME..."
+!
+    return
+! e+ e- -> u u~
+  elseif (iptrn.eq.2) then
+!    print *,"e+ e- -> u u~"
+! The Born part is needed because of renormalization, it is always
+! calculated but when the dependent part is needed:
+    if ((mode.eq.'f').or.(mode.eq.'i').or.(mode.eq.'b')) then
+      Born = PSI2uBorn(1,2,8,7)
+    end if
+! The full virtual part is only calculated if it is explicitly needed
+    if (mode.eq.'f') then
+      Virt = PSI2qVirtNLO(1,2,8,7)
+      Virt = (Virt - 8d0)*qcd_cf*Born
+    end if
+    ! Is the full virtual equal to indep + dep?
+    if (mode.eq.'b') Virt = Virt
     return
   end if
 !

@@ -239,7 +239,7 @@ implicit none
   call BmunuSME(iptrn,jleg,pborn,Bmunu)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Bmunu = Bmunu * (4d0*pi)**3
+  Bmunu = Bmunu * (4d0*pi)**2
 !
 ! We store Bmunu:
   smeBmunu_saved = Bmunu
@@ -326,7 +326,7 @@ implicit none
   call BmunuSME_q1q2(iptrn,jleg,q1,q2,pborn,Bmunu)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Bmunu = Bmunu * (4d0*pi)**3
+  Bmunu = Bmunu * (4d0*pi)**2
 !
 ! We store Bmunu:
   smeBmunu_saved = Bmunu
@@ -394,7 +394,7 @@ implicit none
   call SwapColor(nleg_born,parts,pborn,Bij)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Bij = Bij * (4d0*pi)**3
+  Bij = Bij * (4d0*pi)**2
 !
   smeBij_saved = Bij
 !
@@ -466,7 +466,7 @@ implicit none
 !  call SwapColor(nleg_born,parts,pborn,Bijk)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Bijk = Bijk * (4d0*pi)**3
+  Bijk = Bijk * (4d0*pi)**2
 !
   smeBijk_saved = Bijk
 !
@@ -533,7 +533,7 @@ implicit none
   call SwapColor(nleg_born,parts,pborn,Bijkl)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Bijkl = Bijkl * (4d0*pi)**3
+  Bijkl = Bijkl * (4d0*pi)**2
 !
   smeBijkl_saved = Bijkl
 !
@@ -626,7 +626,7 @@ implicit none
   call SwapColormunuij_part_part(nleg_born,parts,pborn,Bmunuij)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Bmunuij = Bmunuij * (4d0*pi)**3
+  Bmunuij = Bmunuij * (4d0*pi)**2
 !
   smeBmunuij_saved = Bmunuij
 !
@@ -730,7 +730,7 @@ implicit none
 !  call BalbemunuSME(iptrn,kleg,lleg,pborn,Balbemunu)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Balbemunu = Balbemunu * (4d0*pi)**3
+  Balbemunu = Balbemunu * (4d0*pi)**2
 !
 ! We store Bmunu:
   smeBalbemunu_saved = Balbemunu
@@ -815,7 +815,7 @@ implicit none
   call BalbeSME(iptrn,jleg,pborn,Balbe)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Balbe = Balbe * (4d0*pi)**3
+  Balbe = Balbe * (4d0*pi)**2
 !
 ! We store Balbe:
 !  smeBalbe_saved = Balbe
@@ -890,12 +890,12 @@ implicit none
     call BornSMEddim(iptrn,pborn,Born)
   else
     call BornSMEddim(iptrn,pborn,Born,BornLaurent)
-    BornLaurent = BornLaurent * (4d0*pi)**3
+    BornLaurent = BornLaurent * (4d0*pi)**2
     smeBLaurent_saved = BornLaurent
   end if
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Born = Born * (4d0*pi)**3
+  Born = Born * (4d0*pi)**2
 !
 ! We also store the Born which can be useful for scale dependency studies:
   smeB_saved = Born
@@ -968,7 +968,7 @@ implicit none
     call BijSMEddim(iptrn,pborn,Bij)
   else
     call BijSMEddim(iptrn,pborn,Bij,BijLaurent)
-    BijLaurent = BijLaurent * (4d0*pi)**3
+    BijLaurent = BijLaurent * (4d0*pi)**2
     call SwapColorLaurent(nleg_born,parts,pborn,BijLaurent)
     smeBijLaurent_saved = BijLaurent
   end if
@@ -978,7 +978,7 @@ implicit none
   call SwapColor(nleg_born,parts,pborn,Bij)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Bij = Bij * (4d0*pi)**3
+  Bij = Bij * (4d0*pi)**2
 !
   smeBij_saved = Bij
 !
@@ -1048,7 +1048,7 @@ implicit none
     call BijklSMEddim(iptrn,pborn,Bijkl)
   else
     call BijklSMEddim(iptrn,pborn,Bijkl,BijklLaurent)
-    BijklLaurent = BijklLaurent * (4d0*pi)**3
+    BijklLaurent = BijklLaurent * (4d0*pi)**2
     call SwapColorLaurent(nleg_born,parts,pborn,BijklLaurent)
     smeBijklLaurent_saved = BijklLaurent
   end if
@@ -1058,7 +1058,7 @@ implicit none
   call SwapColor(nleg_born,parts,pborn,Bijkl)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Bijkl = Bijkl * (4d0*pi)**3
+  Bijkl = Bijkl * (4d0*pi)**2
 !
   smeBijkl_saved = Bijkl
 !

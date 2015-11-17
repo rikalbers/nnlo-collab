@@ -7,7 +7,7 @@ muscale 91.2d0	! If minus a dynamic scale is used
 
 seed 1223
 
-nevents 100000
+nevents 1000000
 
 niter 10
 
@@ -17,7 +17,7 @@ thrs    1d-3
 
 LO  1
 NLO_R 0
-NLO_V 0
+NLO_V 1
 NNLO_RR 0
 NNLO_RV 0
 NNLO_VV 0
