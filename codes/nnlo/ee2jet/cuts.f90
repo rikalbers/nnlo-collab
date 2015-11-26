@@ -90,8 +90,8 @@ implicit none
 !  EEC = CalcEEC(0,0,5,p)
 !  cfunc = EEC
 !
-!   T = CalcThrust(p,5)
-!   cfunc = 1 - T
+!  T = CalcThrust(p,5)
+!  cfunc = 1 - T
   cfunc = 1d0
 !
 ! #####################################################################

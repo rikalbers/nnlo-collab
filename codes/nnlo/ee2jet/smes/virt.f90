@@ -118,6 +118,7 @@ implicit none
 ! The full virtual part is calculated
     if ((mode.eq.'f').or.(mode.eq.'b')) then
       Virt = PSI2qVirtNLO(1,2,8,7)
+!      print *,"I: ",Virt
       Virt = (Virt - 8d0)*qcd_cf*Born
     end if
 ! The mu independent part is calculated if it is asked for:
@@ -130,7 +131,6 @@ implicit none
       Virt_dep = PSI2qVirtNLOmudep(1,2,8,7)
       Virt_dep = Virt_dep*qcd_cf*Born
     end if
-! Is the full virtual equal to indep + dep?
     if (mode.eq.'b') Virt = Virt
 ! If the VirtLaurent variable is present in the argument we give back
 ! the Laurent series of the virtual part, not just the finite piece:
@@ -140,8 +140,53 @@ implicit none
       VirtLaurent(-1) = PSI2qVirtNLOem1(1,2,8,7)*qcd_cf*Born &
                         - qcd_beta0*Born
     end if
+! Normalization of 2/(4pi) with respect to the born matrix element
+    Virt = Virt/(2d0*pi)
+!
 !    do ipart=1,4
-!     print *,pin(ipart)%p
+!      print *,pin(ipart)%p
+!    end do
+!    print *,"virt: ",virt
+!    print *,"born: ",born
+!    print *,"Q: ",sqrt(Q2)
+!    print *,"mur: ",mur
+    return
+! e+ e- -> u u~
+  elseif (iptrn.eq.2) then
+! The Born part is needed because of renormalization, it is always
+! calculated but when the dependent part is needed:
+    if ((mode.eq.'f').or.(mode.eq.'i').or.(mode.eq.'b')) then
+      Born = PSI2uBorn(1,2,8,7)
+    end if
+! The full virtual part is calculated
+    if ((mode.eq.'f').or.(mode.eq.'b')) then
+      Virt = PSI2qVirtNLO(1,2,8,7)
+      Virt = (Virt - 8d0)*qcd_cf*Born
+    end if
+! The mu independent part is calculated if it is asked for:
+    if (mode.eq.'i') then
+      Virt_indep = PSI2qVirtNLOmuindep(1,2,8,7)
+! We sweep the renormalization into the independent part:
+      Virt_indep = (Virt_indep - 8d0)*qcd_cf*Born
+    end if
+    if (mode.eq.'d') then
+      Virt_dep = PSI2qVirtNLOmudep(1,2,8,7)
+      Virt_dep = Virt_dep*qcd_cf*Born
+    end if
+    if (mode.eq.'b') Virt = Virt
+! If the VirtLaurent variable is present in the argument we give back
+! the Laurent series of the virtual part, not just the finite piece:
+    if (present(VirtLaurent)) then
+      VirtLaurent = 0d0
+      VirtLaurent(-2) = PSI2qVirtNLOem2(1,2,8,7)*qcd_cf*Born
+      VirtLaurent(-1) = PSI2qVirtNLOem1(1,2,8,7)*qcd_cf*Born &
+                        - qcd_beta0*Born
+    end if
+! Normalization of 2/(4pi) with respect to the born matrix element
+    Virt = Virt/(2d0*pi)
+!
+!    do ipart=1,4
+!      print *,pin(ipart)%p
 !    end do
 !    print *,"virt: ",virt
 !    print *,"born: ",born
@@ -149,23 +194,6 @@ implicit none
 !    print *,"mur: ",mur
 !    stop "VirtSME..."
 !
-    return
-! e+ e- -> u u~
-  elseif (iptrn.eq.2) then
-!    print *,"e+ e- -> u u~"
-! The Born part is needed because of renormalization, it is always
-! calculated but when the dependent part is needed:
-    if ((mode.eq.'f').or.(mode.eq.'i').or.(mode.eq.'b')) then
-      Born = PSI2uBorn(1,2,8,7)
-    end if
-! The full virtual part is only calculated if it is explicitly needed
-    if (mode.eq.'f') then
-      Virt = PSI2qVirtNLO(1,2,8,7)
-      Virt = (Virt - 8d0)*qcd_cf*Born
-    end if
-    ! Is the full virtual equal to indep + dep?
-    if (mode.eq.'b') Virt = Virt
-    return
   end if
 !
 end subroutine VirtSME
@@ -221,6 +249,7 @@ implicit none
                                 PSI2q1gVmunuem1, &
                                 PSI2q1gVmunuem2
 !
+  print *,"Using 3jet version of VmunuSME"
 ! We initialize the QCD and COUPLINGS blocks for each and every
 ! contribution, safety first...
   if (init) then
@@ -442,6 +471,9 @@ implicit none
 !
     end subroutine VirtSME
   end interface
+!
+  print *,"Using 3jet version of VijSME"
+!
   if (init) then
 ! A matrix template is constructed for the color-correlated
 ! virtual:
@@ -546,6 +578,8 @@ implicit none
 !
     end subroutine BornSMEddim
   end interface
+!
+  print *,"Using 3jet version of VirtSMEddim"
 !
   pi=3.14159265358979324d0
   z3=1.20205690315959429d0 !zeta(3)
@@ -664,6 +698,9 @@ implicit none
 !
     end subroutine VirtSMEddim
   end interface
+!
+  print *,"Using 3jet version of VijSMEddim"
+!
   if (init) then
 ! A matrix template is constructed for the color-correlated
 ! virtual:
@@ -758,6 +795,9 @@ implicit none
 !
     end subroutine VirtSMEddim_new
   end interface
+!
+  print *,"Using 3jet version of VijSMEddim_new"
+!
   if (init) then
 ! A matrix template is constructed for the color-correlated
 ! virtual:
@@ -826,6 +866,8 @@ implicit none
 !
     end subroutine BornSMEddim
   end interface
+!
+  print *,"Using 3jet version of VirtSMEddim_new"
 !
   pi=3.14159265358979324d0
   z3=1.20205690315959429d0 !zeta(3)

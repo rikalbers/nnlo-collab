@@ -68,7 +68,7 @@ end do
   call getspinorproducts(P,9,A,B)
 !
 ! Ordering is important here! From the q2g1 case:
-! Probably we have: q,qb,e-,e+ => q,qb,e+,e-
+! Probably we have: q,qb,e+,e- => q,qb,e-,e+
 !   Note that the position of the quark and the antiquark is interchanged.
 !   To get agreement with HELAC we had to change the ordering from 1,2,3,7,8
 !   to 1,3,2,8,7
@@ -76,11 +76,11 @@ end do
 !   The ordering along momenta: q,qb,g,e+,e-
 !   The variable called iptrn determines which contribution we should
 !   calculate:
-! e+ e- -> d d
+! e+ e- -> d d~
   if (iptrn.eq.1) then
     Born = PSI2dBorn(1,2,8,7)
     return
-! e+ e- -> u u
+! e+ e- -> u u~
   elseif (iptrn.eq.2) then
     Born = PSI2uBorn(1,2,8,7)
     return
@@ -119,6 +119,7 @@ implicit none
 !
   real(kind(1d0)) , external :: PSI2d1gBornV,PSI2u1gBornV
 !
+  print *,"Using 3jet version of BmunuSME"
 !
 ! We initialize the QCD and COUPLINGS blocks for each and every
 ! contribution, safety first...
@@ -217,6 +218,7 @@ implicit none
 !
   real(kind(1d0)) , external :: PSI2d1gBornV,PSI2u1gBornV
 !
+  print *,"Using 3jet version of BmunuSME_q1q2"
 !
 ! We initialize the QCD and COUPLINGS blocks for each and every
 ! contribution, safety first...
@@ -408,6 +410,7 @@ implicit none
 !
   real(kind(1d0)) , external :: PSI2d1gBorn,PSI2u1gBorn
 !
+  print *,"Using 3jet version of BijklSME"
 ! We initialize the QCD and COUPLINGS blocks for each and every
 ! contribution, safety first...
   if (init) then
@@ -574,6 +577,8 @@ implicit none
     end subroutine BmunuSME
   end interface
 !
+  print *,"Using 3jet version of BmunuijSME"
+!
   Bmunuij = 0d0
 !
 ! The color-correlated SME is trivial and the color of the Born factorizes
@@ -623,6 +628,8 @@ implicit none
 !
     end subroutine CalcB
   end interface
+!
+  print *,"Using 3jet version of BmunuCS"
 !
   Bmunu = 0
 !
@@ -723,6 +730,7 @@ implicit none
 !
   real(kind(1d0)) , external :: PSI2d1gBornV,PSI2u1gBornV
 !
+  print *,"Using 3jet version of BalbeSME"
 !
 ! We initialize the QCD and COUPLINGS blocks for each and every
 ! contribution, safety first...
@@ -799,6 +807,7 @@ implicit none
   real(kind(1d0)) :: Q2,s,t,u,x1,x2
   type(mom) :: p1,p2,p3,p4,p5,Q
 !
+  print *,"Using 3jet version of BornSME_AK"
 !
   p1 = p(1)%p ; p2 = p(2)%p
 !
@@ -857,6 +866,7 @@ implicit none
   real(kind(1d0)) :: Q2,s,t,u,x1,x2
   type(mom) :: p1,p2,p3,p4,p5,Q
 !
+  print *,"Using 3jet version of Bmunu_AK"
 !
   p1 = p(1)%p ; p2 = p(2)%p
 !
@@ -968,6 +978,8 @@ implicit none
   real(kind(1d0)) , dimension(-4:2) :: Laurent
   type(mom) :: Q
 !
+  print *,"Using 3jet version of BornSMEddim"
+!
   Born = 1d0
 !
 end subroutine BornSMEddim
@@ -1002,6 +1014,8 @@ implicit none
 !
     end subroutine BornSMEddim
   end interface
+!
+  print *,"Using 3jet version of BijSMEddim"
 !
   Bij = 1d0
 !
@@ -1041,6 +1055,8 @@ implicit none
 !
     end subroutine BornSMEddim
   end interface
+!
+  print *,"Using 3jet version of BijklSMEddim"
 !
   Bijkl = 1d0
 !

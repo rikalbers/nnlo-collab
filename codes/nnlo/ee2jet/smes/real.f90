@@ -24,9 +24,7 @@ implicit none
   common/dotproducts/S &
         /spinorproducts/A,B
 !
-  real(kind(1d0)) , external :: PSI2d2gBorn,PSI2u2gBorn, &
-                                PSI2u2d,PSI2u2c,PSI2d2s, &
-                                PSI4u,PSI4usl,PSI4d,PSI4dsl
+  real(kind(1d0)) , external :: PSI2d1gBorn,PSI2u1gBorn
 !
 ! We initialize the QCD and COUPLINGS blocks for each and every
 ! contribution, safety first...
@@ -68,51 +66,19 @@ implicit none
   call getspinorproducts(P,9,A,B)
 !
 ! Note that the position of the quark and the antiquark is interchanged.
-! To get agreement with HELAC we had to change the ordering from 1,2,3,4,7,8
-! to 1,2,3,4,8,7.
-! The ordering among momenta: q,g,g,qb,e-,e+
-! The ordering among momenta: q,Qb,Q,qb,e-,e+
+! To get agreement with HELAC we had to change the ordering from 1,2,3,7,8
+! to 1,3,2,8,7.
+! The ordering among momenta: q,qb,g,e+,e-
 ! The variable called iptrn determines which contribution we should 
 ! calculate:
-! e+ e- -> d d~ g g
+! e+ e- -> d d~ g
   if (iptrn.eq.1) then
-!    print *,"e+ e- -> d d~ g g"
-    smeR = PSI2d2gBorn(1,3,4,2,8,7)
+    smeR = PSI2d1gBorn(1,3,2,8,7)
     return
-! e+ e- -> u u~ g g
+! e+ e- -> u u~ g
   elseif (iptrn.eq.2) then
-!    print *,"e+ e- -> u u~ g g"
-    smeR = PSI2u2gBorn(1,3,4,2,8,7)
+    smeR = PSI2u1gBorn(1,3,2,8,7)
     return
-! e+ e- -> u u~ d d~
-  elseif (iptrn.eq.3) then
-!    print *,"e+ e- -> u u~ d d~"
-    smeR = PSI2u2d(1,4,3,2,8,7)
-    return
-! e+ e- -> u u~ u u~
-  elseif (iptrn.eq.4) then
-!    print *,"e+ e- -> u u~ u u~"
-    smeR = PSI4u(1,4,3,2,8,7) + PSI4usl(1,4,3,2,8,7)
-    return
-! e+ e- -> d d~ d d~
-  elseif (iptrn.eq.5) then
-!    print *,"e+ e- -> d d~ d d~"
-    smeR = PSI4d(1,4,3,2,8,7) + PSI4dsl(1,4,3,2,8,7)
-    return
-! e+ e- -> u u~ c c~
-  elseif (iptrn.eq.6) then
-!    print *,"e+ e- -> u u~ c c~"
-    smeR = PSI2u2c(1,4,3,2,8,7)
-    return
-! e+ e- -> d d~ s s~
-  elseif (iptrn.eq.7) then
-!    print *,"e+ e- -> d d~ s s~"
-    smeR = PSI2d2s(1,4,3,2,8,7)
-    return
-  else 
-    print *,"unknown real SME is asked for..."
-    print *,"iptrn: ",iptrn
-    stop
   end if
 !
 end subroutine RealSME
@@ -153,6 +119,7 @@ implicit none
                                 PSI2u2d,PSI2u2c,PSI2d2s, &
                                 PSI4u,PSI4usl,PSI4d,PSI4dsl
 !
+  print *,"Using 3jet version of RmunuSME"
 !
 ! We initialize the QCD and COUPLINGS blocks for each and every
 ! contribution, safety first...
@@ -306,6 +273,7 @@ implicit none
                                 PSI2u2cBorn12,PSI2u2cBorn13,PSI2u2cBorn14, &
                                 PSI2d2sBorn12,PSI2d2sBorn13,PSI2d2sBorn14
 !
+  print *,"Using 3jet version of RijSME"
 ! We initialize the QCD and COUPLINGS blocks for each and every
 ! contribution, safety first...
   if (init) then

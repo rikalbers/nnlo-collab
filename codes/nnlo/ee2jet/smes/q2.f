@@ -159,18 +159,14 @@ C IHELE = 2 for 4-
       COMMON /QCD/XNf,XNu,XNd,XNc,XNa
      >       /scales/ COMU
      >       /DOTPRODUCTS/ S
-      REAL(KIND(1D0)) PI, EG
+      REAL(KIND(1D0)) PI
       PARAMETER ( PI  = 3.14159265358979 D0)
-      PARAMETER ( EG  = 0.57721566490153286 D0 )!EULERGAMMA
 
       MUSQ = COMU**2
 c LOG from epsilon factor
-      EPSLOG = LOG(4D0*PI*MUSQ/S(FOUR,FIVE))
+      EPSLOG = LOG(MUSQ/S(FOUR,FIVE))
 
-      PSI = 0D0
-
-      PSI = PSI+(3D0*EG-EG**2 +7D0/6D0*PI**2
-     >           +(2D0*EG-3D0)*EPSLOG-EPSLOG**2)
+      PSI = PI**2 -3D0*EPSLOG-EPSLOG**2
 
       PSI2qVirtNLO = PSI
       END
@@ -181,16 +177,11 @@ c LOG from epsilon factor
       IMPLICIT NONE
 
       INTEGER ONE,TWO,FOUR,FIVE
-      REAL(KIND(1D0)) S(11,11)
-      REAL(KIND(1D0)) PSI,XNf,XNu,XNd,XNc,XNa
-      COMMON /QCD/XNf,XNu,XNd,XNc,XNa
-      REAL(KIND(1D0)) PI, EG
+      REAL(KIND(1D0)) PSI
+      REAL(KIND(1D0)) PI
       PARAMETER ( PI  = 3.14159265358979 D0)
-      PARAMETER ( EG  = 0.57721566490153286 D0 )!EULERGAMMA
 
-      PSI = 0D0
-
-      PSI = PSI+(3D0*EG-EG**2 +7D0/6D0*PI**2)
+      PSI = PI**2
 
       PSI2qVirtNLOmuindep = PSI
       END
@@ -207,17 +198,14 @@ c LOG from epsilon factor
       COMMON /QCD/XNf,XNu,XNd,XNc,XNa
      >       /scales/ COMU
      >       /DOTPRODUCTS/ S
-      REAL(KIND(1D0)) PI, EG
+      REAL(KIND(1D0)) PI
       PARAMETER ( PI  = 3.14159265358979 D0)
-      PARAMETER ( EG  = 0.57721566490153286 D0 )!EULERGAMMA
 
       MUSQ = COMU**2
 c LOG from epsilon factor
-      EPSLOG = LOG(4D0*PI*MUSQ/S(FOUR,FIVE))
+      EPSLOG = LOG(MUSQ/S(FOUR,FIVE))
 
-      PSI = 0D0
-
-      PSI = PSI+(2D0*EG-3D0)*EPSLOG-EPSLOG**2
+      PSI = -3D0*EPSLOG-EPSLOG**2
 
       PSI2qVirtNLOmudep = PSI
       END
@@ -234,17 +222,14 @@ c LOG from epsilon factor
       COMMON /QCD/XNf,XNu,XNd,XNc,XNa
      >       /scales/ COMU
      >       /DOTPRODUCTS/ S
-      REAL(KIND(1D0)) PI, EG
+      REAL(KIND(1D0)) PI
       PARAMETER ( PI  = 3.14159265358979 D0)
-      PARAMETER ( EG  = 0.57721566490153286 D0 )!EULERGAMMA
 
       MUSQ = COMU**2
 c LOG from epsilon factor
-      EPSLOG = LOG(4D0*PI*MUSQ/S(FOUR,FIVE))
+      EPSLOG = LOG(MUSQ/S(FOUR,FIVE))
 
-      PSI = 0D0
-
-      PSI = PSI-3D0 +2*EG- 2D0*EPSLOG
+      PSI = -3D0 -2D0*EPSLOG
 
       PSI2qVirtNLOem1 = PSI
       END
@@ -256,8 +241,6 @@ c LOG from epsilon factor
 
       INTEGER ONE,TWO,FOUR,FIVE
       REAL(KIND(1D0)) PSI
-
-      PSI = 0D0
 
       PSI = -2D0
 

@@ -15,7 +15,7 @@ implicit none
 !
 contains
 !
-subroutine init_Real()
+subroutine init_Real() 
 use process
 use reshuffle_data
 implicit none
@@ -27,7 +27,8 @@ implicit none
 !
 ! We have to allocate the array which will hold the patterns
 ! and we have to fill these arrays up too:
-  numptrns = 7
+! For e+ e- -> q q~ g we have only two subprocesses:
+  numptrns = 2
 !
   allocate(ptrns(nleg_born+1,numptrns),stat=istat)
   if (istat.ne.0) then
@@ -46,28 +47,12 @@ implicit none
 ! The first massless quark flavor starts with 1 and if the 
 ! next is different than it is 2 otherwise 1:
 !
-! e+ e- -> d d~ g g
+! e+ e- -> d d~ g
   ptrns(1,1) = -11 ; ptrns(2,1) = 11 ; ptrns(3,1) =  1
-  ptrns(4,1) =  -1 ; ptrns(5,1) =  0 ; ptrns(6,1) =  0
-! e+ e- -> u u~ g g
+  ptrns(4,1) =  -1 ; ptrns(5,1) =  0
+! e+ e- -> u u~ g
   ptrns(1,2) = -11 ; ptrns(2,2) = 11 ; ptrns(3,2) =  2
-  ptrns(4,2) =  -2 ; ptrns(5,2) =  0 ; ptrns(6,2) =  0
-! e+ e- -> u u~ d d~
-  ptrns(1,3) = -11 ; ptrns(2,3) = 11 ; ptrns(3,3) =  2
-  ptrns(4,3) =  -2 ; ptrns(5,3) =  1 ; ptrns(6,3) = -1
-! e+ e- -> u u~ u u~
-  ptrns(1,4) = -11 ; ptrns(2,4) = 11 ; ptrns(3,4) =  2
-  ptrns(4,4) =  -2 ; ptrns(5,4) =  2 ; ptrns(6,4) = -2
-! e+ e- -> d d~ d d~
-  ptrns(1,5) = -11 ; ptrns(2,5) = 11 ; ptrns(3,5) =  1
-  ptrns(4,5) =  -1 ; ptrns(5,5) =  1 ; ptrns(6,5) = -1
-! e+ e- -> u u~ c c~
-  ptrns(1,6) = -11 ; ptrns(2,6) = 11 ; ptrns(3,6) =  2
-  ptrns(4,6) =  -2 ; ptrns(5,6) =  4 ; ptrns(6,6) = -4
-! e+ e- -> d d~ s s~
-  ptrns(1,7) = -11 ; ptrns(2,7) = 11 ; ptrns(3,7) =  1
-  ptrns(4,7) =  -1 ; ptrns(5,7) =  3 ; ptrns(6,7) = -3
-!
+  ptrns(4,2) =  -2 ; ptrns(5,2) =  0
   prefacts = 1d0
 !
   print *,"The following patterns were created for the Real: "
@@ -108,18 +93,6 @@ implicit none
   real(kind(1d0)) :: prefact
 !
   interface
-    subroutine reshufflemom(n,p,pout,numptrn,ptrn,returnptrn,prefactor)
-    use particles
-    implicit none
-!
-      integer , intent(in) :: n,numptrn
-      type(particle) , intent(in) , dimension(:) :: p
-      type(particle) , intent(out) , dimension(:) :: pout
-      integer , intent(in) , dimension(:,:) :: ptrn
-      integer , intent(out) :: returnptrn
-      real(kind(1d0)) , intent(out) :: prefactor
-!
-    end subroutine reshufflemom
 !
     subroutine reshufflemomud(n,p,pout,numptrn,ptrn,returnptrn, &
                               prefactor)
@@ -165,7 +138,7 @@ implicit none
   call RealSME(iptrn,preal,smeR)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  smeR = smeR * (4d0*pi)**4
+  smeR = smeR * (4d0*pi)**3
 !
   smeR_saved = smeR
 !

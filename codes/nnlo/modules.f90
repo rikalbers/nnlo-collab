@@ -2223,7 +2223,7 @@ implicit none
 !                                          flv_NLO_V(:,iproc)
         call CreateParts(parr_tmp,flv_NLO_V(:,iproc),parts_tmp)
         call CalcV(parts_tmp,SME)
-        call CalcVddim(parts_tmp,SME)
+!        call CalcVddim(parts_tmp,SME)
 ! And store them in an array accordingly:
         numrels(imom,iproc) = SME
       end do
