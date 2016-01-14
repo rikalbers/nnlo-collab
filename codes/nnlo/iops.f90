@@ -956,8 +956,18 @@ subroutine CalcC1qF(x,laurent)
   real(kind(1d0)) :: Li2arg2, Li3arg2, Li4arg2
   real(kind(1d0)) :: Li4arg3
 
-!Calculate logs and Li's once for all
   logX = log(x)
+
+  laurent = 0
+
+!Calculate series
+  laurent(-2) = 0
+
+  laurent(-1) = -13d0/6d0 - 2*logX
+
+!In case x<=0.9 we can use the original formula
+  if (x.lt.0.9d0) then
+!Calculate logs and Li's once for all
   log1mX = log(1-x)
 
 !arg1: x
@@ -979,15 +989,6 @@ subroutine CalcC1qF(x,laurent)
 
   Li4arg3 = LiN(4)
 
-  laurent = 0
-
-!Calculate series
-  laurent(-2) = 0
-
-  laurent(-1) = -13d0/6d0 - 2*logX
-
-!In case x<=0.9 we can use the original formula
-  if (x.lt.0.9d0) then
    laurent(0) = (1064 - 96*pi**2 + 144*logX**2*(-1 + x)**5 - 5323*x + &
     360*pi**2*x + 10538*x**2 - 720*pi**2*x**2 - 10460*x**3 + &
     720*pi**2*x**3 + 5230*x**4 - 360*pi**2*x**4 - &
@@ -1206,12 +1207,22 @@ subroutine CalcC1gF(x,laurent)
   real(kind(1d0)) :: Li2arg6, Li3arg6
   real(kind(1d0)) :: Li3arg7
 
-!Calculate logs and Li's once for all
   logX = log(x)
-  log1mX = log(1-x)
   log2 = log(2d0)
 
-!arg1: x
+  laurent = 0
+
+!Calculate series
+  laurent(-2) = 0
+  
+  laurent(-1) = -43d0/18d0 - 2*logX
+
+!In case x<=0.9 we can use the original formula
+  if (x.lt.0.9d0) then
+  !Calculate logs and Li's once for all
+  log1mX = log(1-x)
+
+  !arg1: x
   call PolyLogs(x,LiN)
 
   Li2arg1 = LiN(2)
@@ -1253,16 +1264,6 @@ subroutine CalcC1gF(x,laurent)
   call PolyLogs(x/2d0,LiN)
 
   Li3arg7 = LiN(3)
-
-  laurent = 0
-
-!Calculate series
-  laurent(-2) = 0
-  
-  laurent(-1) = -43d0/18d0 - 2*logX
-
-!In case x<=0.9 we can use the original formula
-  if (x.lt.0.9d0) then
 
    laurent(0) = (215552 - 18432*pi**2 + 432*logX**2*(-2 + x)**6*(-1 + x)**5 - &
     1735936*x - 3840*log2*x + 124416*pi**2*x + 6239744*x**2 + &
@@ -1589,25 +1590,18 @@ subroutine CalcS1ikFF(Y,laurent)
   real(kind(1d0)) :: Li2arg2, Li3arg2
   real(kind(1d0)) :: Li4arg3
 !
-!Calculate logs and Li's once for all
   logY = log(Y)
-  log1mY = log(1-Y)
 
-!arg1: Y
-  call PolyLogs(Y,LiN)
+  if (abs(Y-1d0).lt.1d-10) then
+    Li2arg2 = 0d0
+    Li3arg2 = 0d0
+  else
+    !arg2: 1 - Y
+    call PolyLogs(1d0 - Y,LiN)
 
-  Li3arg1 = LiN(3)
-
-!arg2: 1 - Y
-  call PolyLogs(1d0 - Y,LiN)
-
-  Li2arg2 = LiN(2)
-  Li3arg2 = LiN(3)
-
-!arg3: (Y - 1)/Y
-  call PolyLogs((Y - 1d0)/Y,LiN)
-
-  Li4arg3 = LiN(4)
+    Li2arg2 = LiN(2)
+    Li3arg2 = LiN(3)
+  end if
 
   laurent = 0
 
@@ -1620,6 +1614,18 @@ subroutine CalcS1ikFF(Y,laurent)
 
 !In case x<=0.9 we can use the original formula
   if (Y.lt.0.9d0) then
+  !Calculate logs and Li's once for all
+  log1mY = log(1-Y)
+
+!arg1: Y
+  call PolyLogs(Y,LiN)
+
+  Li3arg1 = LiN(3)
+
+!arg3: (Y - 1)/Y
+  call PolyLogs((Y - 1d0)/Y,LiN)
+
+  Li4arg3 = LiN(4)
 
    laurent(1) = - 9299d0/108d0 + (317*logY)/18. - (11*logY**2)/6. - (log1mY*logY**2)/2. + &
     logY**3/6. + (77*pi**2)/18. - logY*pi**2 - (11*Li2arg2)/3. - &

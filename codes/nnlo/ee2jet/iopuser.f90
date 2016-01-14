@@ -26,14 +26,14 @@ implicit none
   real(kind(1d0)) , dimension(-4:2) :: Laurent
 !
 !
-  y13 = YikQ(3,5)*yiQ(3)*yiQ(5)
-  y23 = YikQ(4,5)*yiQ(4)*yiQ(5)
+!  y13 = YikQ(3,5)*yiQ(3)*yiQ(5)
+!  y23 = YikQ(4,5)*yiQ(4)*yiQ(5)
 !
 !  print *,"y13,y23: ",y13,y23
 !  print *,"YikQ: ",YikQ(3,5),YikQ(4,5)
 !  print *,"yiQ: ",yiQ(3:5)
 !
-  call Ifit3jet(y13,y23,Ifit,Laurent)
+  call Ifit2jet(Ifit,Laurent)
   if (present(IfitLaurent)) then
     IfitLaurent = SeriesProd(Laurent,BornLaurent)
     Ifit        = IfitLaurent(0)

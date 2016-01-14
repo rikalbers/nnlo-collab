@@ -166,7 +166,11 @@ C IHELE = 2 for 4-
 c LOG from epsilon factor
       EPSLOG = LOG(MUSQ/S(FOUR,FIVE))
 
+c excluding r[e]^-1
       PSI = PI**2 -3D0*EPSLOG-EPSLOG**2
+
+c including r[e]^-1
+c      PSI = 7D0*PI**2 /6D0 -3D0*EPSLOG-EPSLOG**2
 
       PSI2qVirtNLO = PSI
       END
@@ -181,7 +185,11 @@ c LOG from epsilon factor
       REAL(KIND(1D0)) PI
       PARAMETER ( PI  = 3.14159265358979 D0)
 
+c excluding r[e]^-1
       PSI = PI**2
+
+c including r[e]^-1
+c      PSI = 7D0/6D0 *PI**2
 
       PSI2qVirtNLOmuindep = PSI
       END

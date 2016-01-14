@@ -224,7 +224,7 @@ implicit none
   call RmunuSME(iptrn,jleg,preal,Rmunu)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Rmunu = Rmunu * (4d0*pi)**4
+  Rmunu = Rmunu * (4d0*pi)**3
 !
 ! We store Bmunu:
   smeRmunu_saved = Rmunu
@@ -292,7 +292,7 @@ implicit none
   call SwapColor(nleg_born+1,parts,preal,Rij)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  Rij = Rij * (4d0*pi)**4
+  Rij = Rij * (4d0*pi)**3
 !
   smeRij_saved = Rij
 !

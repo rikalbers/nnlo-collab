@@ -40,11 +40,11 @@ implicit none
 ! C-parameter:
   call bookup_hist("Cpar",0.01d0,0d0,1d0)
 ! Three-to-two jet transition:
-  call bookup_hist("y23",0.25d0,-10.0d0,-0.75d0)
+!  call bookup_hist("y23",0.25d0,-10.0d0,-0.75d0)
 ! Jet-algos:
-  do ialgo=1,njetalgo
-    call bookup_hist(cjetalgo(ialgo),1d0,0.5d0,15.5d0)
-  end do
+!  do ialgo=1,njetalgo
+!    call bookup_hist(cjetalgo(ialgo),1d0,0.5d0,15.5d0)
+!  end do
 !
 end subroutine init_analysis
 !
@@ -141,24 +141,24 @@ implicit none
 !
 ! New way:
 ! For each jet algorithm we calculate the transition variables:
-  do ialgo=1,njetalgo
-    if (ialgo.ne.5) then
-      call CalcYn(ialgo,Q2,ntrack,ptrack,YnArr)
-    else
-      call CalcCambridgeYn(ialgo,Q2,ntrack,ptrack, &
-                           ycut(15),YnArr)
-    end if
+!  do ialgo=1,njetalgo
+!    if (ialgo.ne.5) then
+!      call CalcYn(ialgo,Q2,ntrack,ptrack,YnArr)
+!    else
+!      call CalcCambridgeYn(ialgo,Q2,ntrack,ptrack, &
+!                           ycut(15),YnArr)
+!    end if
 ! Loop over all ycut values:
-    do iycut=15,1,-1
+!    do iycut=15,1,-1
 ! To have exactly 3 jets: Y34 < ycut < Y23:
 ! That is the resolution should be less than Y34 not to 
 ! resolve 4 jets, but greater than Y23 to resolve at least 3
 ! jets:
-      if ((ycut(iycut).gt.YnArr(2)).and.(ycut(iycut).lt.YnArr(1))) then
-        call fill_hist(cjetalgo(ialgo),dble(iycut),wgt)
-      end if
-    end do
-  end do
+!      if ((ycut(iycut).gt.YnArr(2)).and.(ycut(iycut).lt.YnArr(1))) then
+!        call fill_hist(cjetalgo(ialgo),dble(iycut),wgt)
+!      end if
+!    end do
+!  end do
 !
 end subroutine analysis
 !

@@ -1,7 +1,7 @@
 #COMPILER = ifort
 COMPILER = gfortran
 
-ANALYSIS=-thrust-SW
+ANALYSIS=-eventshapes-SW
 
 ifeq ($(COMPILER),ifort)
 FC = ifort
@@ -79,7 +79,7 @@ USER =  contb.o contr.o contv.o contvv.o contrr.o contrv.o init_processes.o \
 	cuts.o \
 	kaleu-ps.o \
 	rambo-ps.o \
-	iopee3jet.o \
+	iopee2jet.o \
 	iopuser.o \
 	$(OBJF77)#fastjetfortran.o $(FJCORE)
 

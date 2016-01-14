@@ -1,7 +1,7 @@
 ! This source contains routines related to the Doubly-Real contribution...
 module RReal_data
 use particles
-implicit none
+implicit none 
 !
   logical :: ini_RR = .true.
   integer :: numptrns
@@ -44,34 +44,27 @@ implicit none
 ! The first massless quark flavor starts with 1 and if the 
 ! next is different than it is 2 otherwise 1:
 !
-! e+ e- -> d d~ g g g
+! e+ e- -> d d~ g g
   ptrns(1,1) = -11 ; ptrns(2,1) = 11 ; ptrns(3,1) =  1
-  ptrns(4,1) =  -1 ; ptrns(5,1) =  0 ; ptrns(6,1) =  0 
-  ptrns(7,1) =   0
-! e+ e- -> u u~ g g g
+  ptrns(4,1) =  -1 ; ptrns(5,1) =  0 ; ptrns(6,1) =  0
+! e+ e- -> u u~ g g
   ptrns(1,2) = -11 ; ptrns(2,2) = 11 ; ptrns(3,2) =  2
   ptrns(4,2) =  -2 ; ptrns(5,2) =  0 ; ptrns(6,2) =  0
-  ptrns(7,2) =   0
-! e+ e- -> u u~ d d~ g
+! e+ e- -> u u~ d d~
   ptrns(1,3) = -11 ; ptrns(2,3) = 11 ; ptrns(3,3) =  2
   ptrns(4,3) =  -2 ; ptrns(5,3) =  1 ; ptrns(6,3) = -1
-  ptrns(7,3) =   0
-! e+ e- -> u u~ u u~ g
+! e+ e- -> u u~ u u~
   ptrns(1,4) = -11 ; ptrns(2,4) = 11 ; ptrns(3,4) =  2
   ptrns(4,4) =  -2 ; ptrns(5,4) =  2 ; ptrns(6,4) = -2
-  ptrns(7,4) =   0
-! e+ e- -> d d~ d d~ g
+! e+ e- -> d d~ d d~
   ptrns(1,5) = -11 ; ptrns(2,5) = 11 ; ptrns(3,5) =  1
   ptrns(4,5) =  -1 ; ptrns(5,5) =  1 ; ptrns(6,5) = -1
-  ptrns(7,5) =   0
-! e+ e- -> u u~ c c~ g
+! e+ e- -> u u~ c c~
   ptrns(1,6) = -11 ; ptrns(2,6) = 11 ; ptrns(3,6) =  2
   ptrns(4,6) =  -2 ; ptrns(5,6) =  4 ; ptrns(6,6) = -4
-  ptrns(7,6) =   0
-! e+ e- -> d d~ s s~ g
+! e+ e- -> d d~ s s~
   ptrns(1,7) = -11 ; ptrns(2,7) = 11 ; ptrns(3,7) =  1
   ptrns(4,7) =  -1 ; ptrns(5,7) =  3 ; ptrns(6,7) = -3
-  ptrns(7,7) =   0
 !
   prefacts = 1d0
 !
@@ -166,7 +159,7 @@ implicit none
   call RRealSME(iptrn,prr,smeRR)
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  smeRR = smeRR * (4d0*pi)**5
+  smeRR = smeRR * (4d0*pi)**4
 !
   smeRR_saved = smeRR
 !

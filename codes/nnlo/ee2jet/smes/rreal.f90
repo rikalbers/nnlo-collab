@@ -19,17 +19,17 @@ implicit none
   real(kind(1d0)) Xnx,Xny,Xnz,XC3
   complex(kind(1d0)) , dimension(2,2,2) :: C
   common/COUPLINGS/ C &
-        /QCD/XNf,XNu,XNd,XNc,XNa &
-        /QCDTWO/Xnx,Xny,Xnz,XC3
+        /QCD/XNf,XNu,XNd,XNc,XNa
+!        /QCDTWO/Xnx,Xny,Xnz,XC3
   real(kind(1d0)) , dimension(11,11) :: S
   complex(kind(1d0)) , dimension(11,11) :: A,B
   common/dotproducts/S &
         /spinorproducts/A,B
 !
-  real(kind(1d0)) , external :: PSI2qf3gBornNT, &
-                                M_2q2Q1g_tree, &
-                                M_4q1g_tree
-!
+  real(kind(1d0)) , external :: PSI2d2gBorn,PSI2u2gBorn, &
+                                PSI2u2d,PSI2u2c,PSI2d2s, &
+                                PSI4u,PSI4usl,PSI4d,PSI4dsl
+
 ! We initialize the QCD and COUPLINGS blocks for each and every
 ! contribution, safety first...
   if (init) then
@@ -40,11 +40,6 @@ implicit none
     XNd = qcd_nd
     XNc = qcd_nc
     XNa = qcd_nc**2 - 1d0
-!
-    Xnx = 2d0 * XNc**2/(XNc**2 - 1d0)
-    Xny = qcd_tr/qcd_cf
-    XC3 = 7d0/Xnc
-    Xnz = XC3/Xnc/qcd_cf**3
 !
     C(:,:,:) = couplings
 !
@@ -75,49 +70,49 @@ implicit none
   call getspinorproducts(P,9,A,B)
 !
 ! Note that the position of the quark and the antiquark is interchanged.
-! To get agreement with HELAC we had to change the ordering from 1,2,3,4,5,7,8
-! to 1,3,4,5,2,8,7.
-! The ordering among momenta: q,g,g,g,qb,e-,e+
+! To get agreement with HELAC we had to change the ordering from 1,2,3,4,7,8
+! to 1,2,3,4,8,7.
+! The ordering among momenta: q,g,g,qb,e-,e+
 ! The ordering among momenta: q,Qb,Q,qb,e-,e+
 ! The variable called iptrn determines which contribution we should 
 ! calculate:
-! e+ e- -> d d~ g g g
+! e+ e- -> d d~ g g
   if (iptrn.eq.1) then
-!    print *,"e+ e- -> d d~ g g g"
-    smeRR = PSI2qf3gBornNT(1,3,4,5,2,8,7,2)
+!    print *,"e+ e- -> d d~ g g"
+    smeRR = PSI2d2gBorn(1,3,4,2,8,7)
     return
-! e+ e- -> u u~ g g g
+! e+ e- -> u u~ g g
   elseif (iptrn.eq.2) then
-!    print *,"e+ e- -> u u~ g g g"
-    smeRR = PSI2qf3gBornNT(1,3,4,5,2,8,7,1)
+!    print *,"e+ e- -> u u~ g g"
+    smeRR = PSI2u2gBorn(1,3,4,2,8,7)
     return
-! e+ e- -> u u~ d d~ g
+! e+ e- -> u u~ d d~
   elseif (iptrn.eq.3) then
-!    print *,"e+ e- -> u u~ d d~ g"
-    smeRR = M_2q2Q1g_tree(1,2,3,4,5,8,7,1,2)
+!    print *,"e+ e- -> u u~ d d~"
+    smeRR = PSI2u2d(1,4,3,2,8,7)
     return
-! e+ e- -> u u~ u u~ g
+! e+ e- -> u u~ u u~
   elseif (iptrn.eq.4) then
-!    print *,"e+ e- -> u u~ u u~ g"
-    smeRR = M_4q1g_tree(1,2,3,4,5,8,7,1)
+!    print *,"e+ e- -> u u~ u u~"
+    smeRR = PSI4u(1,4,3,2,8,7) + PSI4usl(1,4,3,2,8,7)
     return
-! e+ e- -> d d~ d d~ g
+! e+ e- -> d d~ d d~
   elseif (iptrn.eq.5) then
-!    print *,"e+ e- -> d d~ d d~ g"
-    smeRR = M_4q1g_tree(1,2,3,4,5,8,7,2)
+!    print *,"e+ e- -> d d~ d d~"
+    smeRR = PSI4d(1,4,3,2,8,7) + PSI4dsl(1,4,3,2,8,7)
     return
-! e+ e- -> u u~ c c~ g
+! e+ e- -> u u~ c c~
   elseif (iptrn.eq.6) then
-!    print *,"e+ e- -> u u~ c c~ g"
-    smeRR = M_2q2Q1g_tree(1,2,3,4,5,8,7,1,1)
+!    print *,"e+ e- -> u u~ c c~"
+    smeRR = PSI2u2c(1,4,3,2,8,7)
     return
-! e+ e- -> d d~ s s~ g
+! e+ e- -> d d~ s s~
   elseif (iptrn.eq.7) then
-!    print *,"e+ e- -> d d~ s s~ g"
-    smeRR = M_2q2Q1g_tree(1,2,3,4,5,8,7,2,2)
+!    print *,"e+ e- -> d d~ s s~"
+    smeRR = PSI2d2s(1,4,3,2,8,7)
     return
   else 
-    print *,"unknown RR SME is asked for..."
+    print *,"unknown real SME is asked for..."
     print *,"iptrn: ",iptrn
     stop
   end if

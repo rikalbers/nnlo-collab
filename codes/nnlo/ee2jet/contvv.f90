@@ -50,12 +50,12 @@ implicit none
 ! The first massless quark flavor starts with 1 and if the 
 ! next is different than it is 2 otherwise 1:
 !
-! e+ e- -> d d~ g
+! e+ e- -> d d~
   ptrns(1,1) = -11 ; ptrns(2,1) = 11 ; ptrns(3,1) =  1
-  ptrns(4,1) =  -1 ; ptrns(5,1) =  0
-! e+ e- -> u u~ g
+  ptrns(4,1) =  -1
+! e+ e- -> u u~
   ptrns(1,2) = -11 ; ptrns(2,2) = 11 ; ptrns(3,2) =  2
-  ptrns(4,2) =  -2 ; ptrns(5,2) =  0
+  ptrns(4,2) =  -2
 !
   prefacts = 1d0
 !
@@ -67,7 +67,6 @@ implicit none
   allocate(pvv(nleg_born),stat=istat)
   if (istat.ne.0) then
     print *,"pvv cannot be allocated..."
-    stop
   end if
 !
   ini_VV = .false.
@@ -154,12 +153,13 @@ implicit none
 !
     Laurent_tmp = Laurent_tmp + VVLaurentAtMuRef
 !
-    VVirt = Laurent_tmp(0) * cGamma * (4d0*pi)**5
+    VVirt = Laurent_tmp(0) * (4d0*pi)**4
 !
     if (present(VVirtLaurent)) then
-      VVirtLaurent = Laurent_tmp * cGamma * (4d0*pi)**5
+      VVirtLaurent = Laurent_tmp * (4d0*pi)**4
     end if
 !
+    stop "VV scaledep not yet implemented!"
     return
   end if
 !
@@ -176,11 +176,11 @@ implicit none
                 VVLaurentAtMuRef,VLaurentAtMuRef,BLaurentAtMuRef)
 !
   VVirt = VVLaurentAtMuRef(0)
-  VVirt = VVirt * cGamma
-  VVirt = VVirt * (4d0*pi)**5
+!  VVirt = VVirt * cGamma
+  VVirt = VVirt * (4d0*pi)**4
 !
   if (present(VVirtLaurent)) then
-    VVirtLaurent = VVLaurentAtMuRef * cGamma * (4d0*pi)**5
+    VVirtLaurent = VVLaurentAtMuRef * (4d0*pi)**4
   end if
 !
 end subroutine CalcVV

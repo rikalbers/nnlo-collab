@@ -1619,6 +1619,17 @@ implicit none
 !
     end subroutine CalcVddim
 !
+    subroutine CalcVddim_new(parts,smeV,smeVLaurent)
+    use particles
+    implicit none
+!
+      type(particle) , dimension(:) , intent(in) :: parts
+      real(kind(1d0)) , intent(out) :: smeV
+      real(kind(1d0)) , optional , dimension(-4:2) , intent(out) :: &
+        smeVLaurent
+!
+    end subroutine CalcVddim_new
+!
     subroutine CalcVij(p,Vij,VijLaurent)
     use particles
     implicit none
@@ -1748,10 +1759,10 @@ implicit none
     call calcBij(p,Bij)
 ! Uncomment the following four lines if you want to use the d-dimensional
 ! Born:
-!    call CalcBijddim(p,Bij,BijLaurent)
-!    do i=-4,2
-!      call CastSMEijToSME(p,BijLaurent(:,:,i),BornLaurent(i))
-!    end do
+    call CalcBijddim(p,Bij,BijLaurent)
+    do i=-4,2
+      call CastSMEijToSME(p,BijLaurent(:,:,i),BornLaurent(i))
+    end do
     call CastSMEijToSME(p,Bij,smeB)
   elseif (flg_NNLO_VV) then
 !    call CalcBijkl(p,Bijkl)
@@ -1777,11 +1788,11 @@ implicit none
     call calc_couplings
 ! Calling the virtual routines (if needed):
     if (flg_NLO_V.and..not.flg_NNLO_VV) then
-      call CalcV(p,smeV)
-      call CalcI1nlo(p,smeB,Bij,I_NLO)
+!      call CalcV(p,smeV)
+!      call CalcI1nlo(p,smeB,Bij,I_NLO)
 ! Virtual present up to O(ep^2):
-!      call CalcVddim(p,smeV)
-!      call CalcI1nloddim(p,BornLaurent,BijLaurent,I_NLO)
+      call CalcVddim_new(p,smeV)
+      call CalcI1nloddim(p,BornLaurent,BijLaurent,I_NLO)
     elseif (flg_NNLO_VV) then
 !      call CalcVij(p,Vij,VijLaurent)
       call CalcVijddim_new(p,Vij,VijLaurent)

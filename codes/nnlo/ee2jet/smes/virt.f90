@@ -22,7 +22,7 @@ implicit none
 !
   integer :: ipart
   logical , save :: init = .true.
-  real(kind(1d0)) :: Born
+  real(kind(1d0)) :: Born,Borne1,Virtem1
 !
 ! In what follows is ugly as hell, but we still have some
 ! f77 legacy code around...
@@ -104,97 +104,62 @@ implicit none
 !! Note that the position of the quark and the antiquark is interchanged.
 !! To get agreement with HELAC we had to change the ordering from 1,2,3,7,8
 !! to 1,3,2,8,7.
-!! The ordering among momenta: q,qb,g,e+,e-
+!! The ordering among momenta: q,qb,g,e+,e-   
+! The Born part is needed because of renormalization, it is always
+! calculated but when the dependent part is needed:
+  if ((mode.eq.'f').or.(mode.eq.'i').or.(mode.eq.'b')) then
 ! The variable called iptrn determines which contribution we should
 ! calculate:
-! e+ e- -> d d~
-  if (iptrn.eq.1) then
-!    print *,"e+ e- -> d d~"
-! The Born part is needed because of renormalization, it is always
-! calculated but when the dependent part is needed:
-    if ((mode.eq.'f').or.(mode.eq.'i').or.(mode.eq.'b')) then
+    if (iptrn.eq.1) then
+!      print *,"e+ e- -> d d~"
       Born = PSI2dBorn(1,2,8,7)
-    end if
-! The full virtual part is calculated
-    if ((mode.eq.'f').or.(mode.eq.'b')) then
-      Virt = PSI2qVirtNLO(1,2,8,7)
-!      print *,"I: ",Virt
-      Virt = (Virt - 8d0)*qcd_cf*Born
-    end if
-! The mu independent part is calculated if it is asked for:
-    if (mode.eq.'i') then
-      Virt_indep = PSI2qVirtNLOmuindep(1,2,8,7)
-! We sweep the renormalization into the independent part:
-      Virt_indep = (Virt_indep - 8d0)*qcd_cf*Born
-    end if
-    if (mode.eq.'d') then
-      Virt_dep = PSI2qVirtNLOmudep(1,2,8,7)
-      Virt_dep = Virt_dep*qcd_cf*Born
-    end if
-    if (mode.eq.'b') Virt = Virt
-! If the VirtLaurent variable is present in the argument we give back
-! the Laurent series of the virtual part, not just the finite piece:
-    if (present(VirtLaurent)) then
-      VirtLaurent = 0d0
-      VirtLaurent(-2) = PSI2qVirtNLOem2(1,2,8,7)*qcd_cf*Born
-      VirtLaurent(-1) = PSI2qVirtNLOem1(1,2,8,7)*qcd_cf*Born &
-                        - qcd_beta0*Born
-    end if
-! Normalization of 2/(4pi) with respect to the born matrix element
-    Virt = Virt/(2d0*pi)
-!
-!    do ipart=1,4
-!      print *,pin(ipart)%p
-!    end do
-!    print *,"virt: ",virt
-!    print *,"born: ",born
-!    print *,"Q: ",sqrt(Q2)
-!    print *,"mur: ",mur
-    return
-! e+ e- -> u u~
-  elseif (iptrn.eq.2) then
-! The Born part is needed because of renormalization, it is always
-! calculated but when the dependent part is needed:
-    if ((mode.eq.'f').or.(mode.eq.'i').or.(mode.eq.'b')) then
+    else if (iptrn.eq.2) then
+!      print *,"e+ e- -> u u~"
       Born = PSI2uBorn(1,2,8,7)
     end if
+  end if
 ! The full virtual part is calculated
-    if ((mode.eq.'f').or.(mode.eq.'b')) then
-      Virt = PSI2qVirtNLO(1,2,8,7)
-      Virt = (Virt - 8d0)*qcd_cf*Born
-    end if
+  if ((mode.eq.'f').or.(mode.eq.'b')) then
+    Virt = PSI2qVirtNLO(1,2,8,7)
+    Virtem1 = PSI2qVirtNLOem1(1,2,8,7)
+!    print *,"I: ",Virt
+    Virt = (Virt - 8d0)*qcd_cf*Born
+  end if
 ! The mu independent part is calculated if it is asked for:
-    if (mode.eq.'i') then
-      Virt_indep = PSI2qVirtNLOmuindep(1,2,8,7)
+  if (mode.eq.'i') then
+    Virt_indep = PSI2qVirtNLOmuindep(1,2,8,7)
 ! We sweep the renormalization into the independent part:
-      Virt_indep = (Virt_indep - 8d0)*qcd_cf*Born
-    end if
-    if (mode.eq.'d') then
-      Virt_dep = PSI2qVirtNLOmudep(1,2,8,7)
-      Virt_dep = Virt_dep*qcd_cf*Born
-    end if
-    if (mode.eq.'b') Virt = Virt
+    Virt_indep = (Virt_indep - 8d0)*qcd_cf*Born
+  end if
+  if (mode.eq.'d') then
+    Virt_dep = PSI2qVirtNLOmudep(1,2,8,7)
+    Virtem1 = PSI2qVirtNLOem1(1,2,8,7)
+    Virt_dep = Virt_dep*qcd_cf*Born
+  end if
+  if (mode.eq.'b') Virt = Virt
 ! If the VirtLaurent variable is present in the argument we give back
 ! the Laurent series of the virtual part, not just the finite piece:
-    if (present(VirtLaurent)) then
-      VirtLaurent = 0d0
-      VirtLaurent(-2) = PSI2qVirtNLOem2(1,2,8,7)*qcd_cf*Born
-      VirtLaurent(-1) = PSI2qVirtNLOem1(1,2,8,7)*qcd_cf*Born &
-                        - qcd_beta0*Born
-    end if
-! Normalization of 2/(4pi) with respect to the born matrix element
-    Virt = Virt/(2d0*pi)
-!
-!    do ipart=1,4
-!      print *,pin(ipart)%p
-!    end do
-!    print *,"virt: ",virt
-!    print *,"born: ",born
-!    print *,"Q: ",sqrt(Q2)
-!    print *,"mur: ",mur
-!    stop "VirtSME..."
-!
+  if (present(VirtLaurent)) then
+    VirtLaurent = 0d0
+    VirtLaurent(-2) = PSI2qVirtNLOem2(1,2,8,7)*qcd_cf*Born
+    VirtLaurent(-1) = 1d10*PSI2qVirtNLOem1(1,2,8,7)*qcd_cf*Born &
+                      - qcd_beta0*Born
+    print *, 'VirtLaurent in VirtSME not implemented'
   end if
+! Normalization of 2/(4pi) with respect to the born matrix element
+  Virt = Virt/(2d0*pi)
+!
+! Factoring out gs instead of as to get agreement with
+! the normalization in contv.f90
+  Virt = Virt/(4d0*pi)
+!   do ipart=1,4
+!     print *,pin(ipart)%p
+!   end do
+!   print *,"virt: ",virt
+!   print *,"born: ",born
+!   print *,"Q: ",sqrt(Q2)
+!   print *,"mur: ",mur
+  return
 !
 end subroutine VirtSME
 !
@@ -452,7 +417,7 @@ implicit none
   logical , save :: init = .true.
   real(kind(1d0)) :: Virt,Virt_dep,Virt_indep
   real(kind(1d0)) , dimension(-4:2) :: VirtLaurent
-  real(kind(1d0)) , dimension(5,5) , save :: Vij_tmp
+  real(kind(1d0)) , dimension(4,4) , save :: Vij_tmp
 !
 !
   interface
@@ -472,8 +437,6 @@ implicit none
     end subroutine VirtSME
   end interface
 !
-  print *,"Using 3jet version of VijSME"
-!
   if (init) then
 ! A matrix template is constructed for the color-correlated
 ! virtual:
@@ -481,13 +444,8 @@ implicit none
 !
     Vij_tmp(3,3) = qcd_cf
     Vij_tmp(4,4) = qcd_cf
-    Vij_tmp(5,5) = qcd_ca
-    Vij_tmp(3,4) = 0.5d0*(Vij_tmp(5,5) - Vij_tmp(3,3) - Vij_tmp(4,4))
-    Vij_tmp(3,5) = 0.5d0*(Vij_tmp(4,4) - Vij_tmp(3,3) - Vij_tmp(5,5))
-    Vij_tmp(4,5) = 0.5d0*(Vij_tmp(3,3) - Vij_tmp(4,4) - Vij_tmp(5,5))
+    Vij_tmp(3,4) = -qcd_cf
     Vij_tmp(4,3) = Vij_tmp(3,4)
-    Vij_tmp(5,3) = Vij_tmp(3,5)
-    Vij_tmp(5,4) = Vij_tmp(4,5)
 !
     init = .false.
   end if
@@ -496,7 +454,7 @@ implicit none
   Vij_indep = 0d0
   Vij_dep   = 0d0
 !
-! The color-correlated virtual is trivial for 3 parton
+! The color-correlated virtual is trivial for 2 parton
 ! processes, we obtain the virtual then construct the 
 ! matrix.
 ! An extra conditional environment is introduced to tackle the
@@ -780,7 +738,7 @@ implicit none
   logical , save :: init = .true.
   integer :: i
   real(kind(1d0)) , dimension(-4:2) :: VirtLaurent,BornLaurent
-  real(kind(1d0)) , dimension(5,5) , save :: Vij_tmp
+  real(kind(1d0)) , dimension(4,4) , save :: Vij_tmp
 !
 !
   interface
@@ -796,8 +754,6 @@ implicit none
     end subroutine VirtSMEddim_new
   end interface
 !
-  print *,"Using 3jet version of VijSMEddim_new"
-!
   if (init) then
 ! A matrix template is constructed for the color-correlated
 ! virtual:
@@ -805,13 +761,8 @@ implicit none
 !
     Vij_tmp(3,3) = qcd_cf
     Vij_tmp(4,4) = qcd_cf
-    Vij_tmp(5,5) = qcd_ca
-    Vij_tmp(3,4) = 0.5d0*(Vij_tmp(5,5) - Vij_tmp(3,3) - Vij_tmp(4,4))
-    Vij_tmp(3,5) = 0.5d0*(Vij_tmp(4,4) - Vij_tmp(3,3) - Vij_tmp(5,5))
-    Vij_tmp(4,5) = 0.5d0*(Vij_tmp(3,3) - Vij_tmp(4,4) - Vij_tmp(5,5))
+    Vij_tmp(3,4) = -qcd_cf
     Vij_tmp(4,3) = Vij_tmp(3,4)
-    Vij_tmp(5,3) = Vij_tmp(3,5)
-    Vij_tmp(5,4) = Vij_tmp(4,5)
 !
     init = .false.
   end if
@@ -820,6 +771,7 @@ implicit none
   BijLaurent = 0
 !
   call VirtSMEddim_new(iptrn,p,mur,VirtLaurent,BornLaurent)
+!  print *,'vl2: ',VirtLaurent*(4d0*3.14159265358979324d0)**3
 !
   do i=-2,2
     VijLaurent(:,:,i) = Vij_tmp(:,:)*VirtLaurent(i)
@@ -833,6 +785,7 @@ use process
 use particles
 use QCDparams
 use my_model
+use misc
 !use math
 implicit none
 !
@@ -867,8 +820,6 @@ implicit none
     end subroutine BornSMEddim
   end interface
 !
-  print *,"Using 3jet version of VirtSMEddim_new"
-!
   pi=3.14159265358979324d0
   z3=1.20205690315959429d0 !zeta(3)
   eg=0.57721566490153286d0 !eulergamma
@@ -880,59 +831,34 @@ implicit none
   Q = p(1)%p + p(2)%p
   Q2 = Q**2
 !
-  y12 = 2*p(3)%p*p(4)%p/Q2
-  y13 = 2*p(3)%p*p(5)%p/Q2
-  y23 = 2*p(4)%p*p(5)%p/Q2
-!
 ! To construct a Virtual with a d-dimensional Born we need
 ! the complete Laurent series of both:
   call BornSMEddim(iptrn,p,Born,BornLaurent)
 !
-! Calculation of mu independent part:
-  call f1(f1yz,y13,y23)
-  call f1(f1zy,y23,y13)
-  call f2(f2yz,y13,y23)
-  call f2(f2zy,y23,y13)
-  do i=-4,2
-    VirtLaurent(i) = 8*qcd_nc*qcd_cf*real(qcd_nc*(f1yz(i)+f1zy(i)) &
-                   + 1d0/qcd_nc*(f2yz(i)+f2zy(i)))
-  end do
-! Pattern 1 is for d d~ g and pattern 2 is for u u~ g:
-  if (iptrn.eq.2) VirtLaurent = 4*VirtLaurent
-  VirtLaurent = VirtLaurent/Q2/27d0
-! Renormalization:
-! Note the extra factor of 1/2 compensation for a factor of 2
-! difference between the beta0 definition used in the 
-! framework and in the SME:
-  do i=-4,1
-    VirtLaurent(i) = VirtLaurent(i) - qcd_beta0*BornLaurent(i+1)
-  end do
+! Excluding r[e]
+  VirtLaurent(-2) = -1d0
+  VirtLaurent(-1) = -3d0/2d0
+  VirtLaurent(0)  = -4d0+ 7d0*pi**2 / 12d0
+  VirtLaurent(1)  = -8d0+ 7d0*pi**2 / 8d0 + 7d0*z3/3d0
+  VirtLaurent(2)  = -16d0 +7d0*pi**2 / 3d0 +7d0*z3/2d0 - 73d0*pi**4 / 1440d0
+  VirtLaurent = VirtLaurent * (qcd_nc- 1d0/qcd_nc)
+  VirtLaurent = SeriesProd(VirtLaurent,BornLaurent)
+! Including r[e]
+! VirtLaurent(-2) = -1d0
+! VirtLaurent(-1) = -3d0/2d0
+! VirtLaurent(0)  = -4d0+ pi**2 / 2d0
+! VirtLaurent(1)  = -8d0+ 3d0*pi**2 / 4d0+ pg21/6d0+ 7d0*z3/3d0
+! VirtLaurent(2)  = -16d0 +2d0*pi**2+ pg21/4d0+ 7d0*z3/2d0 - pi**4 / 120d0
+! VirtLaurent = VirtLaurent * (qcd_nc- 1d0/qcd_nc)
+! VirtLaurent = SeriesProd(VirtLaurent,BornLaurent)
 !
-! Calculation of the mu dependent part:
+! Normalization of 1/(2pi) with respect to the born matrix element
+  VirtLaurent = VirtLaurent/(2d0*pi)
 !
-! xi = mur**2/Q**2:
-  L = log(mur**2/Q2)
+! Factoring out gs instead of alpha_s to get agreement with
+! the normalization in contv.f90
+  VirtLaurent = VirtLaurent/(4d0*pi)
+!  print *,'vl: ',VirtLaurent*(4d0*pi)**3
 !
-  VLaurent = 0
-!
-  VLaurent(-2) = 0
-  VLaurent(-1) = VirtLaurent(-2)*L
-  VLaurent( 0) = 0.5d0*VirtLaurent(-2)*L**2 &
-               + (VirtLaurent(-1) &
-               + qcd_beta0*BornLaurent(0))*L
-  VLaurent( 1) = 1d0/6d0*VirtLaurent(-2)*L**3 &
-               + 0.5d0*(VirtLaurent(-1) &
-               + qcd_beta0*BornLaurent(0))*L**2 &
-               + (VirtLaurent( 0) &
-               + qcd_beta0*BornLaurent(1))*L
-  VLaurent( 2) = 1d0/24d0*VirtLaurent(-2)*L**4 &
-               + 1d0/6d0*(VirtLaurent(-1) &
-               + qcd_beta0*BornLaurent(0))*L**3 &
-               + 0.5d0*(VirtLaurent( 0) &
-               + qcd_beta0*BornLaurent(1))*L**2 &
-               + (VirtLaurent( 1) &
-               + qcd_beta0*BornLaurent(2))*L
-!
-  VirtLaurent = VLaurent + VirtLaurent
 !
 end subroutine VirtSMEddim_new

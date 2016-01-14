@@ -45,27 +45,12 @@ implicit none
 ! The first massless quark flavor starts with 1 and if the 
 ! next is different than it is 2 otherwise 1:
 !
-! e+ e- -> d d~ g g
+! e+ e- -> d d~ g
   ptrns(1,1) = -11 ; ptrns(2,1) = 11 ; ptrns(3,1) =  1
-  ptrns(4,1) =  -1 ; ptrns(5,1) =  0 ; ptrns(6,1) =  0
-! e+ e- -> u u~ g g
+  ptrns(4,1) =  -1 ; ptrns(5,1) =  0
+! e+ e- -> u u~ g
   ptrns(1,2) = -11 ; ptrns(2,2) = 11 ; ptrns(3,2) =  2
-  ptrns(4,2) =  -2 ; ptrns(5,2) =  0 ; ptrns(6,2) =  0
-! e+ e- -> u u~ d d~
-  ptrns(1,3) = -11 ; ptrns(2,3) = 11 ; ptrns(3,3) =  2
-  ptrns(4,3) =  -2 ; ptrns(5,3) =  1 ; ptrns(6,3) = -1
-! e+ e- -> u u~ u u~
-  ptrns(1,4) = -11 ; ptrns(2,4) = 11 ; ptrns(3,4) =  2
-  ptrns(4,4) =  -2 ; ptrns(5,4) =  2 ; ptrns(6,4) = -2
-! e+ e- -> d d~ d d~
-  ptrns(1,5) = -11 ; ptrns(2,5) = 11 ; ptrns(3,5) =  1
-  ptrns(4,5) =  -1 ; ptrns(5,5) =  1 ; ptrns(6,5) = -1
-! e+ e- -> u u~ c c~
-  ptrns(1,6) = -11 ; ptrns(2,6) = 11 ; ptrns(3,6) =  2
-  ptrns(4,6) =  -2 ; ptrns(5,6) =  4 ; ptrns(6,6) = -4
-! e+ e- -> d d~ s s~
-  ptrns(1,7) = -11 ; ptrns(2,7) = 11 ; ptrns(3,7) =  1
-  ptrns(4,7) =  -1 ; ptrns(5,7) =  3 ; ptrns(6,7) = -3
+  ptrns(4,2) =  -2 ; ptrns(5,2) =  0
 !
   prefacts = 1d0
 !
@@ -153,7 +138,7 @@ implicit none
 ! c_Gamma:
     RVirt = RVirt * cGamma
 ! We factor out a tower of \alpha_S and \alpha_{EM}:
-    RVirt = RVirt * (4d0*pi)**5
+    RVirt = RVirt * (4d0*pi)**4
 ! For debugging purposes it is possible that the full Laurent series
 ! is needed for the virtual if this is the case we simply calculate
 ! everything:
@@ -161,8 +146,8 @@ implicit none
       call RVirtSME(iptrn,prv,mur,'f',RVirt,RVirt_dep,RVirt_indep,RVLaurent)
       RVirt = RVirt * cGamma
       RVLaurent = RVLaurent * cGamma
-      RVirt = RVirt * (4d0*pi)**5
-      RVLaurent = RVLaurent * (4d0*pi)**5
+      RVirt = RVirt * (4d0*pi)**4
+      RVLaurent = RVLaurent * (4d0*pi)**4
     end if
     return
   end if
@@ -193,7 +178,7 @@ implicit none
   if (present(RVLaurent)) RVLaurent = RVLaurent * cGamma
 !
 ! The matrix elements are defined such 4\pi\alpha_s = 4\pi\alpha_{EM} = 1:
-  RVirt = RVirt * (4d0*pi)**5
-  if (present(RVLaurent)) RVLaurent = RVLaurent * (4d0*pi)**5
+  RVirt = RVirt * (4d0*pi)**4
+  if (present(RVLaurent)) RVLaurent = RVLaurent * (4d0*pi)**4
 !
 end subroutine CalcRV

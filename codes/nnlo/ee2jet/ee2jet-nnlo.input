@@ -11,16 +11,18 @@ nevents 1000000
 
 niter 10
 
-nbatch 50000
-nstep      2
+nbatch 200000
+nstep      5
 thrs    1d-3
 
-LO  1
+LO  0
 NLO_R 0
-NLO_V 1
-NNLO_RR 0
+NLO_V 0
+NNLO_RR 1
 NNLO_RV 0
 NNLO_VV 0
+
+optdipsqrchan 0
 
 cutfunc 1
 
@@ -31,10 +33,10 @@ alphaem 1.32231949d+02
 scalestudy 0
 scalevarpar 2
 
-noanalysis 0
+noanalysis 1
 
 manyseeds 0
 
 alphamax 1.0d0
 
-ymin 1d-6
+ymin 1d-5
